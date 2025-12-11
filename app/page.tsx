@@ -1,6 +1,7 @@
-import Image from "next/image";
 import { storefront } from "../lib/shopify";
 import { GET_PRODUCTS_QUERY } from "../lib/queries";
+import Image from "next/image";
+import Link from "next/link";
 
 // Types voor Shopify products
 interface ProductImage {
@@ -17,6 +18,7 @@ interface ProductVariant {
     name: string;
     value: string;
   }[];
+  quantityAvailable: number;
 }
 
 interface ProductNode {
@@ -38,7 +40,7 @@ interface ProductEdge {
 
 // Fetch the first 12 products
 async function getProducts(): Promise<ProductEdge[]> {
-  const data = await storefront(GET_PRODUCTS_QUERY);
+  const data = await storefront(GET_PRODUCTS_QUERY, {}, { revalidate: 60 });
   return data.products.edges;
 }
 
@@ -46,74 +48,64 @@ export default async function HomePage() {
   const products = await getProducts();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-(--background)">
       <h1 className="text-3xl font-bold mb-6 p-8 max-w-7xl mx-auto">
         Test showcasing products
       </h1>
+
       <main className="p-8 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map(({ node }: ProductEdge) => {
           const image = node.images.edges[0]?.node;
-          const variant = node.variants.edges[0]?.node;
 
-          // Extract unique sizes from all variants
+          // Extract unique sizes that are in stock
           const sizes = Array.from(
             new Set(
               node.variants.edges
-                .map(
-                  ({ node: v }: { node: ProductVariant }) =>
-                    v.selectedOptions?.find(
-                      (opt) => opt.name.toLowerCase() === "size"
-                    )?.value
-                )
+                .map(({ node: v }) => {
+                  const sizeOption = v.selectedOptions?.find(
+                    (opt) => opt.name.toLowerCase() === "size"
+                  );
+                  return sizeOption && v.quantityAvailable > 0
+                    ? sizeOption.value
+                    : null;
+                })
                 .filter(Boolean)
             )
           );
 
-          if (sizes.length === 0) {
-            sizes.push("One Size");
-          }
+          const isOutOfStock = sizes.length === 0;
 
           return (
-            <div
+            <Link
               key={node.id}
-              className=" overflow-hidden  hover:-translate-y-1 transition-transform duration-200 cursor-pointer flex flex-col bg-background"
+              href={`/product/${node.handle}`}
+              className="group overflow-hidden  "
             >
               {image && (
-                <Image
-                  src={image.url}
-                  alt={image.altText || node.title}
-                  width={500}
-                  height={500}
-                  className="w-full h-100 object-contain"
-                  priority={true}
-                  quality={80}
-                />
-              )}
-              <div className="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <h2 className="text-lg font-bold">{node.title}</h2>
-                  {variant && (
-                    <p className="mt-1 font-semibold">
-                      {variant.priceV2.amount} {variant.priceV2.currencyCode}
-                    </p>
-                  )}
-                  {sizes.length > 0 && (
-                    <div className="mt-2">
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {sizes.map((size) => (
-                          <span
-                            key={size}
-                            className="px-2 py-1 text-xs border border-gray-300 rounded"
-                          >
-                            {size}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <div className="relative w-full h-64">
+                  <Image
+                    src={image.url}
+                    alt={image.altText || node.title}
+                    fill
+                    priority={false}
+                    sizes="(max-width: 640px) 100vw,
+                           (max-width: 1024px) 50vw,
+                           33vw"
+                    className="object-cover"
+                  />
                 </div>
+              )}
+
+              <div className="p-4">
+                <h2 className="text-lg font-bold mb-1">{node.title}</h2>
+
+                {isOutOfStock ? (
+                  <p className="text-sm text-red-600">Out of stock</p>
+                ) : (
+                  <p className="text-sm text-gray-600">{sizes.join(", ")}</p>
+                )}
               </div>
-            </div>
+            </Link>
           );
         })}
       </main>
