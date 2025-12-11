@@ -6,7 +6,6 @@ export const GET_PRODUCTS_QUERY = `
           id
           title
           handle
-          description
           images(first: 1) {
             edges {
               node {

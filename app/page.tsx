@@ -69,6 +69,10 @@ export default async function HomePage() {
             )
           );
 
+          if (sizes.length === 0) {
+            sizes.push("One Size");
+          }
+
           return (
             <div
               key={node.id}
@@ -80,7 +84,7 @@ export default async function HomePage() {
                   alt={image.altText || node.title}
                   width={500}
                   height={500}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-100 object-contain"
                   priority={true}
                   quality={80}
                 />
@@ -95,7 +99,6 @@ export default async function HomePage() {
                   )}
                   {sizes.length > 0 && (
                     <div className="mt-2">
-                      <p className="text-sm font-medium">Sizes:</p>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {sizes.map((size) => (
                           <span
@@ -109,9 +112,6 @@ export default async function HomePage() {
                     </div>
                   )}
                 </div>
-                <p className="mt-2 text-gray-600 text-sm line-clamp-3">
-                  {node.description || "No description"}
-                </p>
               </div>
             </div>
           );
