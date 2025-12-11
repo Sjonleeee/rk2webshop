@@ -41,6 +41,12 @@ export const PRODUCT_QUERY = `
       id
       title
       description
+      priceRange {
+        minVariantPrice {
+          amount
+          currencyCode
+        }
+      }
       images(first: 5) {
         edges {
           node {
@@ -54,14 +60,14 @@ export const PRODUCT_QUERY = `
           node {
             id
             title
+            price {
+              amount
+              currencyCode
+            }
             quantityAvailable
             selectedOptions {
               name
               value
-            }
-            priceV2 {
-              amount
-              currencyCode
             }
           }
         }
