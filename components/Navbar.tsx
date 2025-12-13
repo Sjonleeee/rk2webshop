@@ -20,7 +20,7 @@ export default function Navbar() {
         </li>
         <li>
           <Link
-            href="/"
+            href="/shop"
             className="text-gray-700 hover:text-primary font-medium transition-colors"
           >
             Shop

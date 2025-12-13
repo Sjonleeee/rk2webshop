@@ -72,14 +72,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       )}
 
       <div className="p-4">
-        <h2 className="text-lg font-semibold mb-2">
+        <h2 className="text-lg font-semibold mb-2 text-center">
           {product.title}
         </h2>
 
         {isOutOfStock ? (
-          <p className="text-sm font-medium text-red-600">Out of stock</p>
+          <p className="text-sm font-medium text-red-600 text-center">Out of stock</p>
         ) : (
-          <p className="text-sm text-gray-600">Sizes: {sizes.join(", ")}</p>
+          <p className="text-sm text-gray-600 text-center">Sizes: {sizes.join(", ")}</p>
         )}
       </div>
     </Link>
