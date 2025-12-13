@@ -6,6 +6,8 @@ export const GET_PRODUCTS_QUERY = `
           id
           title
           handle
+          productType
+          description
           images(first: 1) {
             edges {
               node {
@@ -70,6 +72,20 @@ export const PRODUCT_QUERY = `
               value
             }
           }
+        }
+      }
+    }
+  }
+`;
+
+export const GET_COLLECTIONS_QUERY = `
+  query {
+    collections(first: 100) {
+      edges {
+        node {
+          id
+          title
+          handle
         }
       }
     }
