@@ -1,3 +1,7 @@
+export const metadata = {
+  title: 'Shop | R/K2 Webshop',
+  description: 'Bekijk en filter alle producten van R/K2 Webshop per categorie zoals shirts, hoodies, beanies en meer.'
+};
 import { storefront } from "../../lib/shopify";
 import { GET_PRODUCTS_QUERY } from "../../lib/queries";
 import ProductGrid from "../../components/ProductGrid";
@@ -37,10 +41,6 @@ interface ProductNode {
 interface ProductEdge {
   node: ProductNode;
 }
-
-// Collection types niet meer nodig
-
-// getCollections niet meer nodig
 
 // Fetch the first 12 products
 async function getProducts(): Promise<ProductEdge[]> {
@@ -90,7 +90,6 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
             ))}
           </div>
         </div>
-        <h1 className="text-3xl font-bold mb-12 text-center">All Products</h1>
 
         <ProductGrid products={filteredProducts} />
       </div>

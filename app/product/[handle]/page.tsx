@@ -1,3 +1,7 @@
+export const metadata = {
+  title: 'Product | R/K2 Webshop',
+  description: 'Bekijk productdetails, afbeeldingen, prijs en voorraad van dit R/K2 Webshop product.'
+};
 import Image from "next/image";
 import { storefront } from "@/lib/shopify";
 import { PRODUCT_QUERY } from "@/lib/queries";
@@ -70,18 +74,21 @@ export default async function ProductPage({
 
         {/* Middle: Product image */}
         <div className="flex-1">
-          {image && (
-            <div className="w-full aspect-square relative mb-6 flex items-center justify-center rounded-lg">
+          <div className="w-full aspect-square relative mb-6 flex items-center justify-center rounded-lg">
+            {image ? (
               <Image
                 src={image.url}
                 alt={image.altText || product.title}
                 fill
                 className="object-contain p-4"
-                priority
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
-            </div>
-          )}
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                <span>No image</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right: Price and Sizing (3 columns) */}

@@ -37,6 +37,8 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const image = product.images.edges[0]?.node;
+  // Shopify image optimalisatie: vraag kleinere afbeelding op
+  const imageUrl = image ? `${image.url}${image.url.includes('?') ? '&' : '?'}width=600` : undefined;
 
   // Extract unique sizes that are in stock
   const sizes = Array.from(
@@ -57,14 +59,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   const isOutOfStock = sizes.length === 0;
 
   return (
-    <Link href={`/product/${product.handle}`}>
+    <Link href={`/product/${product.handle}`} aria-label={`Bekijk product ${product.title}`}>
       {image && (
         <div className="relative aspect-square overflow-hidden">
           <Image
-            src={image.url}
+            src={imageUrl!}
             alt={image.altText || product.title}
             fill
-            priority={true}
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml,%3Csvg width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='16' height='16' fill='%23f3f3f3'/%3E%3C/svg%3E"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-contain"
           />
