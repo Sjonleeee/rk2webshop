@@ -79,6 +79,13 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Categories</h2>
           <div className="flex flex-wrap gap-4">
+            <a
+              key="all"
+              href="/shop"
+              className="bg-primary px-4 py-2 rounded hover:bg-secondary transition-colors"
+            >
+              All
+            </a>
             {categories.map((category: string) => (
               <a
                 key={category}
