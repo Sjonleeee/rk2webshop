@@ -1,6 +1,6 @@
 import { storefront } from "../lib/shopify";
 import { GET_PRODUCTS_QUERY } from "../lib/queries";
-import ProductCard from "../components/ProductCard";
+import ProductGrid from "../components/ProductGrid";
 // Types voor Shopify products
 interface ProductImage {
   url: string;
@@ -46,17 +46,13 @@ export default async function HomePage() {
   const products = await getProducts();
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-8 py-12">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold mb-12 text-center">
           Test showcasing products
         </h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map(({ node }: ProductEdge) => (
-            <ProductCard key={node.id} product={node} />
-          ))}
-        </div>
+        <ProductGrid products={products} />
       </div>
     </div>
   );

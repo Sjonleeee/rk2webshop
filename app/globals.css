@@ -2,9 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #000000;
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --foreground: #191919;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
