@@ -48,9 +48,19 @@ async function getProducts(): Promise<ProductEdge[]> {
   return data.products.edges;
 }
 
-export default async function ShopPage() {
+
+export default async function ShopPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+
+
+  // Haal de category uit de URL via searchParams prop (object, async)
+  const params = await searchParams;
+  const categoryParam = typeof params.category === 'string' ? params.category : '';
+
   const products = await getProducts();
-  console.log('products', products);
+  // Filter producten op categoryParam indien aanwezig
+  const filteredProducts = categoryParam
+    ? products.filter(({ node }: { node: ProductNode }) => node.productType === categoryParam)
+    : products;
 
   // Haal categorieën uit products (productType)
   const categories = Array.from(
@@ -62,7 +72,6 @@ export default async function ShopPage() {
         )
     )
   );
-  console.log('categories', categories);
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,7 +92,7 @@ export default async function ShopPage() {
         </div>
         <h1 className="text-3xl font-bold mb-12 text-center">All Products</h1>
 
-        <ProductGrid products={products} />
+        <ProductGrid products={filteredProducts} />
       </div>
     </div>
   );
