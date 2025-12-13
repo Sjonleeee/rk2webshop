@@ -1,43 +1,87 @@
-"use client";
-
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-interface Product {
-  images: {
-    edges: Array<{
-      node: {
-        url: string;
-        altText: string | null;
-      };
-    }>;
-  };
-  handle: string;
-  title: string;
+interface ProductImage {
+  url: string;
+  altText: string | null;
 }
 
-export default function ProductCard({ product }: { product: Product }) {
-  const router = useRouter();
+interface ProductVariant {
+  priceV2: {
+    amount: string;
+    currencyCode: string;
+  };
+  selectedOptions: {
+    name: string;
+    value: string;
+  }[];
+  quantityAvailable: number;
+}
+
+interface ProductNode {
+  id: string;
+  title: string;
+  handle: string;
+  description: string | null;
+  images: {
+    edges: { node: ProductImage }[];
+  };
+  variants: {
+    edges: { node: ProductVariant }[];
+  };
+}
+
+interface ProductCardProps {
+  product: ProductNode;
+}
+
+export default function ProductCard({ product }: ProductCardProps) {
   const image = product.images.edges[0]?.node;
 
+  // Extract unique sizes that are in stock
+  const sizes = Array.from(
+    new Set(
+      product.variants.edges
+        .map(({ node: v }) => {
+          const sizeOption = v.selectedOptions?.find(
+            (opt) => opt.name.toLowerCase() === "size"
+          );
+          return sizeOption && v.quantityAvailable > 0
+            ? sizeOption.value
+            : null;
+        })
+        .filter(Boolean)
+    )
+  );
+
+  const isOutOfStock = sizes.length === 0;
+
   return (
-    <div
-      onClick={() => router.push(`/product/${product.handle}`)}
-      className="cursor-pointer border rounded-lg hover:shadow-lg transition"
-    >
+    <Link href={`/product/${product.handle}`}>
       {image && (
-        <Image
-          src={image.url}
-          alt={image.altText || product.title}
-          width={500}
-          height={500}
-          className="w-full h-64 object-cover"
-        />
+        <div className="relative aspect-square overflow-hidden">
+          <Image
+            src={image.url}
+            alt={image.altText || product.title}
+            fill
+            priority={true}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-contain"
+          />
+        </div>
       )}
 
       <div className="p-4">
-        <h2 className="text-lg font-semibold">{product.title}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          {product.title}
+        </h2>
+
+        {isOutOfStock ? (
+          <p className="text-sm font-medium text-red-600">Out of stock</p>
+        ) : (
+          <p className="text-sm text-gray-600">Sizes: {sizes.join(", ")}</p>
+        )}
       </div>
-    </div>
+    </Link>
   );
 }
