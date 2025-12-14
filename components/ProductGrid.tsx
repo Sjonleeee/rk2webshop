@@ -47,12 +47,12 @@ export default function ProductGrid({ products, allProducts, hoveredCategory }: 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-0">
       {displayProducts.map(({ node }) => {
-        let opacityClass = "";
-        // node is ProductNode
+        let opacityClass = "opacity-100";
+        // Alleen op sm+ opacity effect
         if (hoveredCategory) {
-          opacityClass = node.productType === hoveredCategory ? "opacity-100" : "opacity-30";
-        } else {
-          opacityClass = "opacity-100";
+          opacityClass = node.productType === hoveredCategory
+            ? "opacity-100"
+            : "sm:opacity-30 opacity-100";
         }
         return (
           <div key={node.id} className={`transition-opacity duration-200 ${opacityClass}`}>

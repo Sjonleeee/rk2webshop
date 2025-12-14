@@ -4,7 +4,6 @@ import { storefront } from "../../lib/shopify";
 import { GET_PRODUCTS_QUERY } from "../../lib/queries";
 import ProductGrid from "../../components/ProductGrid";
 import CategorySidebar from "../../components/CategorySidebar";
-import { useSearchParams } from "next/navigation";
 
 // Types voor Shopify products
 interface ProductImage {
@@ -42,7 +41,6 @@ interface ProductEdge {
   node: ProductNode;
 }
 
-// Fetch the first 12 products
 async function getProducts(): Promise<ProductEdge[]> {
   const data = await storefront(GET_PRODUCTS_QUERY, {}, { revalidate: 60 });
   return data.products.edges;
@@ -50,21 +48,14 @@ async function getProducts(): Promise<ProductEdge[]> {
 
 export default function ShopPage() {
   const [products, setProducts] = useState<ProductEdge[]>([]);
-  const [loading, setLoading] = useState(true);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
-  const searchParams = useSearchParams();
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
     getProducts().then((data) => {
       setProducts(data);
-      setLoading(false);
     });
   }, []);
-
-  const categoryParam = searchParams.get("category") || "";
-  const filteredProducts = categoryParam
-    ? products.filter(({ node }) => node.productType === categoryParam)
-    : products;
 
   const categories = Array.from(
     new Set(
@@ -78,33 +69,50 @@ export default function ShopPage() {
     )
   );
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>;
-  }
+  // Mobiel: click = filter, Desktop: hover = preview
+  const handleCategory = (cat: string | null) => {
+    if (window.innerWidth < 640) {
+      setActiveCategory(cat);
+    } else {
+      setHoveredCategory(cat);
+    }
+  };
+
+  // Filtering: mobile = activeCategory, desktop = hoveredCategory
+  const filteredProducts =
+    typeof window !== "undefined" && window.innerWidth < 640
+      ? activeCategory
+        ? products.filter(({ node }) => node.productType === activeCategory)
+        : products
+      : hoveredCategory
+      ? products.filter(({ node }) => node.productType === hoveredCategory)
+      : products;
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex w-full px-4 sm:px-6 lg:px-8 py-8 ">
-        {/* Sidebar */}
-        <CategorySidebar
-          categories={categories}
-          hoveredCategory={hoveredCategory}
-          setHoveredCategory={setHoveredCategory}
-        />
-        {/* Main content */}
-        <main className="flex-1">
-          <ProductGrid
-            products={
-              hoveredCategory
-                ? products.filter(
-                    ({ node }) => node.productType === hoveredCategory
-                  )
-                : filteredProducts
-            }
-            allProducts={products}
-            hoveredCategory={hoveredCategory}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        {/* Mobiel: categories boven producten, Desktop: sidebar naast producten */}
+        <div className="block sm:hidden mb-6">
+          <CategorySidebar
+            categories={categories}
+            setHoveredCategory={handleCategory}
           />
-        </main>
+        </div>
+        <div className="flex">
+          <div className="hidden sm:block">
+            <CategorySidebar
+              categories={categories}
+              setHoveredCategory={handleCategory}
+            />
+          </div>
+          <main className="flex-1">
+            <ProductGrid
+              products={filteredProducts}
+              allProducts={products}
+              hoveredCategory={hoveredCategory}
+            />
+          </main>
+        </div>
       </div>
     </div>
   );
