@@ -1,6 +1,7 @@
 export const metadata = {
-  title: 'Shop | R/K2 Webshop',
-  description: 'Bekijk en filter alle producten van R/K2 Webshop per categorie zoals shirts, hoodies, beanies en meer.'
+  title: "Shop | R/K2 Webshop",
+  description:
+    "Bekijk en filter alle producten van R/K2 Webshop per categorie zoals shirts, hoodies, beanies en meer.",
 };
 import { storefront } from "../../lib/shopify";
 import { GET_PRODUCTS_QUERY } from "../../lib/queries";
@@ -48,18 +49,22 @@ async function getProducts(): Promise<ProductEdge[]> {
   return data.products.edges;
 }
 
-
-export default async function ShopPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-
-
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   // Haal de category uit de URL via searchParams prop (object, async)
   const params = await searchParams;
-  const categoryParam = typeof params.category === 'string' ? params.category : '';
+  const categoryParam =
+    typeof params.category === "string" ? params.category : "";
 
   const products = await getProducts();
   // Filter producten op categoryParam indien aanwezig
   const filteredProducts = categoryParam
-    ? products.filter(({ node }: { node: ProductNode }) => node.productType === categoryParam)
+    ? products.filter(
+        ({ node }: { node: ProductNode }) => node.productType === categoryParam
+      )
     : products;
 
   // Haal categorieën uit products (productType)
@@ -67,22 +72,25 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
     new Set(
       products
         .map(({ node }: { node: ProductNode }) => node.productType)
-        .filter((title: string) =>
-          title && !['Home page', 'Automated Collection', 'Hydrogen'].includes(title)
+        .filter(
+          (title: string) =>
+            title &&
+            !["Home page", "Automated Collection", "Hydrogen"].includes(title)
         )
     )
   );
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Categories</h2>
-          <div className="flex flex-wrap gap-4">
+      <div className="flex w-full px-4 sm:px-6 lg:px-8 py-8 gap-8">
+        {/* Sidebar */}
+        <aside className="w-56 min-w-[180px] max-w-xs">
+          <h2 className="text-lg font-semibold mb-6">Categories</h2>
+          <nav className="flex flex-col">
             <a
               key="all"
               href="/shop"
-              className="bg-primary px-4 py-2 rounded hover:bg-secondary transition-colors"
+              className="text-sm px-2 py-1 rounded hover:bg-secondary transition-colors font-medium text-left"
             >
               All
             </a>
@@ -90,15 +98,17 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               <a
                 key={category}
                 href={`/shop?category=${encodeURIComponent(category)}`}
-                className="bg-primary px-4 py-2 rounded hover:bg-secondary transition-colors"
+                className="text-sm px-2 py-1 rounded hover:bg-secondary transition-colors font-medium text-left"
               >
                 {category}
               </a>
             ))}
-          </div>
-        </div>
-
-        <ProductGrid products={filteredProducts} />
+          </nav>
+        </aside>
+        {/* Main content */}
+        <main className="flex-1">
+          <ProductGrid products={filteredProducts} />
+        </main>
       </div>
     </div>
   );
