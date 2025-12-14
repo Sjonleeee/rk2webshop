@@ -38,53 +38,27 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const image = product.images.edges[0]?.node;
   // Shopify image optimalisatie: vraag kleinere afbeelding op
-  const imageUrl = image ? `${image.url}${image.url.includes('?') ? '&' : '?'}width=600` : undefined;
-
-  // Extract unique sizes that are in stock
-  const sizes = Array.from(
-    new Set(
-      product.variants.edges
-        .map(({ node: v }) => {
-          const sizeOption = v.selectedOptions?.find(
-            (opt) => opt.name.toLowerCase() === "size"
-          );
-          return sizeOption && v.quantityAvailable > 0
-            ? sizeOption.value
-            : null;
-        })
-        .filter(Boolean)
-    )
-  );
-
-  const isOutOfStock = sizes.length === 0;
+  const imageUrl = image
+    ? `${image.url}${image.url.includes("?") ? "&" : "?"}width=600`
+    : undefined;
 
   return (
-    <Link href={`/product/${product.handle}`} aria-label={`Bekijk product ${product.title}`}>
+    <Link
+      href={`/product/${product.handle}`}
+      aria-label={`Bekijk product ${product.title}`}
+      className="group"
+    >
       {image && (
         <div className="relative aspect-square overflow-hidden">
           <Image
             src={imageUrl!}
             alt={image.altText || product.title}
             fill
-            placeholder="blur"
-            blurDataURL="data:image/svg+xml,%3Csvg width='16' height='16' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='16' height='16' fill='%23f3f3f3'/%3E%3C/svg%3E"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-contain"
+            className="object-contain transition-transform duration-200 group-hover:-translate-y-1"
           />
         </div>
       )}
-
-      <div className="p-4">
-        <h2 className="text-lg font-semibold mb-2 text-center">
-          {product.title}
-        </h2>
-
-        {isOutOfStock ? (
-          <p className="text-sm font-medium text-red-600 text-center">Out of stock</p>
-        ) : (
-          <p className="text-sm text-gray-600 text-center">Sizes: {sizes.join(", ")}</p>
-        )}
-      </div>
     </Link>
   );
 }

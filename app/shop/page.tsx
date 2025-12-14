@@ -82,15 +82,17 @@ export default async function ShopPage({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex w-full px-4 sm:px-6 lg:px-8 py-8 gap-8">
+      <div className="flex w-full px-4 sm:px-6 lg:px-8 py-8 ">
         {/* Sidebar */}
-        <aside className="w-56 min-w-[180px] max-w-xs">
+        <aside className="w-50 min-w-[180px] max-w-xs">
           <h2 className="text-lg font-semibold mb-6">Categories</h2>
-          <nav className="flex flex-col">
+          <nav className="flex flex-col gap-1 group/category-menu">
             <a
               key="all"
               href="/shop"
-              className="text-sm px-2 py-1 rounded hover:bg-secondary transition-colors font-medium text-left"
+              className="text-sm px-2 py-1 rounded transition-colors font-medium text-left
+                group-hover/category-menu:text-gray-400
+                hover:text-[#2B3AE1] hover:font-bold"
             >
               All
             </a>
@@ -98,7 +100,9 @@ export default async function ShopPage({
               <a
                 key={category}
                 href={`/shop?category=${encodeURIComponent(category)}`}
-                className="text-sm px-2 py-1 rounded hover:bg-secondary transition-colors font-medium text-left"
+                className="text-sm px-2 py-1 rounded transition-colors font-medium text-left
+                  group-hover/category-menu:text-gray-400
+                  hover:text-[#2B3AE1] hover:font-bold"
               >
                 {category}
               </a>
