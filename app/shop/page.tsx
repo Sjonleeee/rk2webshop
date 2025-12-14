@@ -1,11 +1,10 @@
-export const metadata = {
-  title: "Shop | R/K2 Webshop",
-  description:
-    "Bekijk en filter alle producten van R/K2 Webshop per categorie zoals shirts, hoodies, beanies en meer.",
-};
+"use client";
+import { useEffect, useState } from "react";
 import { storefront } from "../../lib/shopify";
 import { GET_PRODUCTS_QUERY } from "../../lib/queries";
 import ProductGrid from "../../components/ProductGrid";
+import CategorySidebar from "../../components/CategorySidebar";
+import { useSearchParams } from "next/navigation";
 
 // Types voor Shopify products
 interface ProductImage {
@@ -49,29 +48,28 @@ async function getProducts(): Promise<ProductEdge[]> {
   return data.products.edges;
 }
 
-export default async function ShopPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  // Haal de category uit de URL via searchParams prop (object, async)
-  const params = await searchParams;
-  const categoryParam =
-    typeof params.category === "string" ? params.category : "";
+export default function ShopPage() {
+  const [products, setProducts] = useState<ProductEdge[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
-  const products = await getProducts();
-  // Filter producten op categoryParam indien aanwezig
+  useEffect(() => {
+    getProducts().then((data) => {
+      setProducts(data);
+      setLoading(false);
+    });
+  }, []);
+
+  const categoryParam = searchParams.get("category") || "";
   const filteredProducts = categoryParam
-    ? products.filter(
-        ({ node }: { node: ProductNode }) => node.productType === categoryParam
-      )
+    ? products.filter(({ node }) => node.productType === categoryParam)
     : products;
 
-  // Haal categorieën uit products (productType)
   const categories = Array.from(
     new Set(
       products
-        .map(({ node }: { node: ProductNode }) => node.productType)
+        .map(({ node }) => node.productType)
         .filter(
           (title: string) =>
             title &&
@@ -80,38 +78,32 @@ export default async function ShopPage({
     )
   );
 
+  if (loading) {
+    return <div className="p-8">Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="flex w-full px-4 sm:px-6 lg:px-8 py-8 ">
         {/* Sidebar */}
-        <aside className="w-50 min-w-[180px] max-w-xs">
-          <h2 className="text-lg font-semibold mb-6">Categories</h2>
-          <nav className="flex flex-col gap-1 group/category-menu">
-            <a
-              key="all"
-              href="/shop"
-              className="text-sm px-2 py-1 rounded transition-colors font-medium text-left
-                group-hover/category-menu:text-gray-400
-                hover:text-[#2B3AE1] hover:font-bold"
-            >
-              All
-            </a>
-            {categories.map((category: string) => (
-              <a
-                key={category}
-                href={`/shop?category=${encodeURIComponent(category)}`}
-                className="text-sm px-2 py-1 rounded transition-colors font-medium text-left
-                  group-hover/category-menu:text-gray-400
-                  hover:text-[#2B3AE1] hover:font-bold"
-              >
-                {category}
-              </a>
-            ))}
-          </nav>
-        </aside>
+        <CategorySidebar
+          categories={categories}
+          hoveredCategory={hoveredCategory}
+          setHoveredCategory={setHoveredCategory}
+        />
         {/* Main content */}
         <main className="flex-1">
-          <ProductGrid products={filteredProducts} />
+          <ProductGrid
+            products={
+              hoveredCategory
+                ? products.filter(
+                    ({ node }) => node.productType === hoveredCategory
+                  )
+                : filteredProducts
+            }
+            allProducts={products}
+            hoveredCategory={hoveredCategory}
+          />
         </main>
       </div>
     </div>
