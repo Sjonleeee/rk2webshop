@@ -8,6 +8,10 @@ export default function CategorySidebar({
   categories,
   setHoveredCategory,
 }: CategorySidebarProps) {
+  // Sorteer de categorieën alfabetisch (hoofdletterongevoelig)
+  const sortedCategories = [...categories].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" })
+  );
   return (
     <aside className="w-[200px] min-w-[180px] max-w-xs">
       <h2 className="text-lg font-semibold mb-6">Categories</h2>
@@ -23,7 +27,7 @@ export default function CategorySidebar({
           >
             All
           </button>
-          {categories.map((category) => (
+          {sortedCategories.map((category) => (
             <button
               type="button"
               key={category + "-mobile"}
@@ -48,7 +52,7 @@ export default function CategorySidebar({
           >
             All
           </button>
-          {categories.map((category) => (
+          {sortedCategories.map((category) => (
             <button
               type="button"
               key={category}

@@ -41,21 +41,30 @@ interface ProductGridProps {
   hoveredCategory?: string | null;
 }
 
-export default function ProductGrid({ products, allProducts, hoveredCategory }: ProductGridProps) {
+export default function ProductGrid({
+  products,
+  allProducts,
+  hoveredCategory,
+}: ProductGridProps) {
   // Toon altijd alle producten als hoveredCategory is gezet, anders alleen filtered
-  const displayProducts = hoveredCategory && allProducts ? allProducts : products;
+  const displayProducts =
+    hoveredCategory && allProducts ? allProducts : products;
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-0">
       {displayProducts.map(({ node }) => {
         let opacityClass = "opacity-100";
         // Alleen op sm+ opacity effect
         if (hoveredCategory) {
-          opacityClass = node.productType === hoveredCategory
-            ? "opacity-100"
-            : "sm:opacity-30 opacity-100";
+          opacityClass =
+            node.productType === hoveredCategory
+              ? "opacity-100"
+              : "sm:opacity-15 opacity-100";
         }
         return (
-          <div key={node.id} className={`transition-opacity duration-200 ${opacityClass}`}>
+          <div
+            key={node.id}
+            className={`transition-opacity duration-200 ${opacityClass}`}
+          >
             <ProductCard product={node} />
           </div>
         );
