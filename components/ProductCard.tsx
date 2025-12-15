@@ -49,13 +49,18 @@ export default function ProductCard({ product }: ProductCardProps) {
       className="group"
     >
       {image && (
-        <div className="relative aspect-square overflow-hidden">
+        <div
+          className="relative w-full aspect-square overflow-hidden flex items-center justify-center transition-transform duration-300 group-hover:scale-105 "
+          style={{ minHeight: 0, minWidth: 0 }}
+        >
           <Image
             src={imageUrl!}
             alt={image.altText || product.title}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-contain transition-transform duration-200 group-hover:-translate-y-1"
+            width={400}
+            height={400}
+            sizes="(max-width: 680px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover w-full h-full max-w-[220px] max-h-[210px] mx-auto transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-2 "
+            priority={false}
           />
         </div>
       )}
