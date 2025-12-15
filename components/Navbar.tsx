@@ -5,6 +5,8 @@ import Image from "next/image";
 import { LiaShoppingBagSolid } from "react-icons/lia";
 import { VscAccount } from "react-icons/vsc";
 import { LuSearch } from "react-icons/lu";
+import { useState, useEffect } from "react";
+import { HiMenu, HiX } from "react-icons/hi";
 
 // Banner boven navbar
 function FreeShippingBanner() {
@@ -16,12 +18,74 @@ function FreeShippingBanner() {
 }
 
 export default function Navbar() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  // Blokkeer scrollen als menu open is
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   return (
     <>
+      {/* Mobile menu overlay: altijd bovenaan in de DOM */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-[9999] bg-[#F6F7FB] flex flex-col sm:hidden transition-all"
+          onClick={() => setMenuOpen(false)}
+        >
+          <div
+            className="flex-1 flex flex-col p-8 gap-8 justify-center items-center relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-4 right-4 text-3xl"
+              aria-label="Sluit menu"
+              onClick={() => setMenuOpen(false)}
+            >
+              <HiX />
+            </button>
+            <Link
+              href="/shop"
+              className="text-gray-700 text-2xl"
+              onClick={() => setMenuOpen(false)}
+            >
+              Shop
+            </Link>
+            <Link
+              href="/about"
+              className="text-gray-700 text-2xl "
+              onClick={() => setMenuOpen(false)}
+            >
+              About
+            </Link>
+            <Link
+              href="/contact"
+              className="text-gray-700 text-2xl "
+              onClick={() => setMenuOpen(false)}
+            >
+              Contact
+            </Link>
+          </div>
+        </div>
+      )}
       <FreeShippingBanner />
-      <nav className="sticky top-0 z-50 flex items-center px-8 py-4 bg-[#F6F7FB]/60 backdrop-blur-xl shadow-sm min-h-16">
-        {/* Links: nav */}
-        <ul className="flex items-center space-x-6 flex-1 justify-start">
+      <nav className="sticky top-0 z-50 flex items-center px-4 sm:px-8 py-4 bg-[#F6F7FB]/60 backdrop-blur-xl shadow-sm min-h-16">
+        {/* Hamburger menu button (mobile) */}
+        <button
+          className="sm:hidden text-2xl text-gray-700 mr-2"
+          aria-label={menuOpen ? "Sluit menu" : "Open menu"}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          {menuOpen ? <HiX /> : <HiMenu />}
+        </button>
+        {/* Links: nav (desktop) */}
+        <ul className="hidden sm:flex items-center space-x-6 flex-1 justify-start">
           <li>
             <Link
               href="/shop"
@@ -75,6 +139,48 @@ export default function Navbar() {
             <VscAccount />
           </button>
         </div>
+        {/* Mobile menu overlay */}
+        {menuOpen && (
+          <div
+            className="fixed inset-0 z-50 bg-[#F6F7FB] flex flex-col sm:hidden transition-all"
+            style={{ backgroundColor: "#F6F7FB" }}
+            onClick={() => setMenuOpen(false)}
+          >
+            <div
+              className="flex-1 flex flex-col p-8 gap-8 justify-center items-center relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="absolute top-4 right-4 text-3xl"
+                aria-label="Sluit menu"
+                onClick={() => setMenuOpen(false)}
+              >
+                <HiX />
+              </button>
+              <Link
+                href="/shop"
+                className="text-gray-700 text-2xl font-semibold"
+                onClick={() => setMenuOpen(false)}
+              >
+                Shop
+              </Link>
+              <Link
+                href="/about"
+                className="text-gray-700 text-2xl font-semibold"
+                onClick={() => setMenuOpen(false)}
+              >
+                About
+              </Link>
+              <Link
+                href="/contact"
+                className="text-gray-700 text-2xl font-semibold"
+                onClick={() => setMenuOpen(false)}
+              >
+                Contact
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
     </>
   );
