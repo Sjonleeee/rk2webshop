@@ -21,7 +21,7 @@ function FreeShippingBanner() {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const { cart } = useCart();
+  const { cart, removeFromCart } = useCart();
   // Blokkeer scrollen als menu open is
   useEffect(() => {
     if (menuOpen) {
@@ -151,7 +151,15 @@ export default function Navbar() {
             </button>
             {/* Cart dropdown */}
             {cartOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg z-50 p-4 border">
+              <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg z-50 p-4">
+                <button
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+                  aria-label="Sluit winkelmandje"
+                  onClick={() => setCartOpen(false)}
+                  type="button"
+                >
+                  <HiX />
+                </button>
                 <h3 className="font-bold mb-2">Winkelmandje</h3>
                 {!cart || !cart.lines || cart.lines.edges.length === 0 ? (
                   <p className="text-gray-500 text-sm">Je mandje is leeg.</p>
@@ -164,7 +172,7 @@ export default function Navbar() {
                         return (
                           <li
                             key={edge.node.id}
-                            className="py-2 flex items-center gap-2"
+                            className="py-2 flex items-center gap-2 group"
                           >
                             {product.featuredImage?.url && (
                               <Image
@@ -183,6 +191,14 @@ export default function Navbar() {
                                 {variant.title} &times; {edge.node.quantity}
                               </div>
                             </div>
+                            <button
+                              className="text-gray-300 hover:text-red-500 text-lg ml-2 opacity-0 group-hover:opacity-100 transition"
+                              aria-label="Verwijder uit winkelmandje"
+                              onClick={() => removeFromCart(edge.node.id)}
+                              type="button"
+                            >
+                              <HiX />
+                            </button>
                           </li>
                         );
                       }

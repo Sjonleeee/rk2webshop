@@ -71,6 +71,7 @@ export default async function ProductPage({
     currency: price.currencyCode,
     image: image?.url || null,
     variantId: variants[0]?.id || null, // default eerste variant
+    outOfStock: variants.every((v) => v.quantityAvailable === 0),
   };
 
 
@@ -139,7 +140,7 @@ export default async function ProductPage({
             </div>
 
             {/* Stap 1: Add to Cart knop */}
-            <AddToCartButton product={productForCart} />
+            {!productForCart.outOfStock && <AddToCartButton product={productForCart} />}
           </div>
         </div>
       </div>

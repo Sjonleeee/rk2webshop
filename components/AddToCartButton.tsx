@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import { useCart } from "./CartContext";
 
 interface AddToCartButtonProps {
@@ -10,9 +9,9 @@ interface AddToCartButtonProps {
     currency: string;
     image: string | null;
     variantId: string | null;
+    outOfStock?: boolean;
   };
 }
-
 
 export default function AddToCartButton({ product }: AddToCartButtonProps) {
   const { addToCart } = useCart();
@@ -24,9 +23,19 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
 
   return (
     <button
-      className="w-full bg-black text-white font-bold py-3 rounded-lg mt-8 hover:bg-gray-800 transition"
+      className={`w-full font-bold py-3 rounded-lg mt-8 transition ${
+        product.outOfStock
+          ? "bg-white/40 text-gray-400 cursor-not-allowed border border-gray-200 backdrop-blur-md shadow-inner"
+          : "bg-black text-white hover:bg-gray-800"
+      }`}
       type="button"
       onClick={handleAddToCart}
+      disabled={product.outOfStock}
+      style={
+        product.outOfStock
+          ? { WebkitBackdropFilter: "blur(8px)", backdropFilter: "blur(8px)" }
+          : {}
+      }
     >
       Add to Cart
     </button>

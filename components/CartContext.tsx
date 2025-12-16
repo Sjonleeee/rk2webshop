@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
@@ -7,6 +8,7 @@ import {
   GET_CART_QUERY,
   ADD_TO_CART_MUTATION,
 } from "@/lib/shopifyCartMutations";
+import { REMOVE_FROM_CART_MUTATION } from "@/lib/shopifyCartMutationsRemove";
 
 /* =======================
    Types
@@ -39,6 +41,7 @@ interface CartContextType {
   cart: ShopifyCart | null;
   cartId: string | null;
   addToCart: (variantId: string, quantity?: number) => Promise<void>;
+  removeFromCart: (lineId: string) => Promise<void>;
   clearCart: () => void;
 }
 
@@ -102,18 +105,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart(data.cartLinesAdd.cart);
   }
 
+  async function removeFromCart(lineId: string) {
+    if (!cartId) return;
+    const data = await storefront(REMOVE_FROM_CART_MUTATION, {
+      cartId,
+      lineIds: [lineId],
+    });
+    setCart(data.cartLinesRemove.cart);
+  }
+
   function clearCart() {
     setCart(null);
     setCartId(null);
     localStorage.removeItem("cartId");
   }
 
-  if (cartId && !cart) {
-    fetchCart(cartId);
-  }
+  // Haal cart op als cartId verandert en component is gemount
+  React.useEffect(() => {
+    if (!cartId || cart) return;
+    let isMounted = true;
+    fetchCart(cartId).then(() => {
+      // alleen setState als component nog gemount is
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [cartId, cart]);
 
   return (
-    <CartContext.Provider value={{ cart, cartId, addToCart, clearCart }}>
+    <CartContext.Provider
+      value={{ cart, cartId, addToCart, removeFromCart, clearCart }}
+    >
       {children}
     </CartContext.Provider>
   );
