@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useCart } from "./CartContext";
 
 interface AddToCartButtonProps {
   product: {
@@ -12,13 +13,13 @@ interface AddToCartButtonProps {
   };
 }
 
+
 export default function AddToCartButton({ product }: AddToCartButtonProps) {
-  function handleAddToCart() {
-    if (typeof window === "undefined") return;
-    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const updatedCart = [...existingCart, product];
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    console.log("Cart:", updatedCart);
+  const { addToCart } = useCart();
+
+  async function handleAddToCart() {
+    if (!product.variantId) return;
+    await addToCart(product.variantId, 1);
   }
 
   return (
