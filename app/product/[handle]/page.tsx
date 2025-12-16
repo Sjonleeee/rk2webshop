@@ -1,10 +1,12 @@
 export const metadata = {
-  title: 'Product | R/K2 Webshop',
-  description: 'Bekijk productdetails, afbeeldingen, prijs en voorraad van dit R/K2 Webshop product.'
+  title: "Product | R/K2 Webshop",
+  description:
+    "Bekijk productdetails, afbeeldingen, prijs en voorraad van dit R/K2 Webshop product.",
 };
 import Image from "next/image";
 import { storefront } from "@/lib/shopify";
 import { PRODUCT_QUERY } from "@/lib/queries";
+import AddToCartButton from "@/components/AddToCartButton";
 
 interface ProductImage {
   url: string;
@@ -60,6 +62,18 @@ export default async function ProductPage({
   const image = product.images.edges[0]?.node;
   const variants = product.variants.edges.map((edge) => edge.node);
   const price = product.priceRange.minVariantPrice;
+
+  // Stap 2: Productgegevens klaarzetten voor Add to Cart
+  const productForCart = {
+    id: product.id,
+    title: product.title,
+    price: price.amount,
+    currency: price.currencyCode,
+    image: image?.url || null,
+    variantId: variants[0]?.id || null, // default eerste variant
+  };
+
+
 
   return (
     <div className="max-w-7xl mx-auto p-10">
@@ -124,9 +138,8 @@ export default async function ProductPage({
               )}
             </div>
 
-            <button className="w-full bg-black text-white font-bold py-3 rounded-lg mt-8 hover:bg-gray-800 transition">
-              Add to Cart
-            </button>
+            {/* Stap 1: Add to Cart knop */}
+            <AddToCartButton product={productForCart} />
           </div>
         </div>
       </div>
