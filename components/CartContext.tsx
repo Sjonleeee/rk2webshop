@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
@@ -11,13 +10,23 @@ import {
 import { REMOVE_FROM_CART_MUTATION } from "@/lib/shopifyCartMutationsRemove";
 
 /* =======================
-   Types
+   Types (MATCH Shopify)
 ======================= */
 
 export interface ShopifyCartLine {
   node: {
     id: string;
     quantity: number;
+    cost?: {
+      amountPerQuantity: {
+        amount: string;
+        currencyCode: string;
+      };
+      totalAmount: {
+        amount: string;
+        currencyCode: string;
+      };
+    };
     merchandise: {
       id: string;
       title: string;
@@ -25,6 +34,8 @@ export interface ShopifyCartLine {
         title: string;
         featuredImage?: { url: string };
       };
+      selectedOptions?: { name: string; value: string }[];
+      priceV2?: { amount: string; currencyCode: string };
     };
   };
 }
@@ -32,6 +43,16 @@ export interface ShopifyCartLine {
 export interface ShopifyCart {
   id: string;
   checkoutUrl: string;
+  cost?: {
+    subtotalAmount: {
+      amount: string;
+      currencyCode: string;
+    };
+    totalAmount: {
+      amount: string;
+      currencyCode: string;
+    };
+  };
   lines: {
     edges: ShopifyCartLine[];
   };
@@ -71,8 +92,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const [cart, setCart] = useState<ShopifyCart | null>(null);
 
-  /* ---------- helpers ---------- */
-
   async function fetchCart(id: string) {
     const data = await storefront(GET_CART_QUERY, { cartId: id });
     setCart(data.cart);
@@ -88,8 +107,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartId(newCart.id);
     localStorage.setItem("cartId", newCart.id);
   }
-
-  /* ---------- public API ---------- */
 
   async function addToCart(variantId: string, quantity = 1) {
     if (!cartId) {
@@ -107,10 +124,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   async function removeFromCart(lineId: string) {
     if (!cartId) return;
+
     const data = await storefront(REMOVE_FROM_CART_MUTATION, {
       cartId,
       lineIds: [lineId],
     });
+
     setCart(data.cartLinesRemove.cart);
   }
 
@@ -120,16 +139,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("cartId");
   }
 
-  // Haal cart op als cartId verandert en component is gemount
+  // hydrate cart once if cartId exists
   React.useEffect(() => {
     if (!cartId || cart) return;
-    let isMounted = true;
-    fetchCart(cartId).then(() => {
-      // alleen setState als component nog gemount is
-    });
-    return () => {
-      isMounted = false;
-    };
+    fetchCart(cartId);
   }, [cartId, cart]);
 
   return (

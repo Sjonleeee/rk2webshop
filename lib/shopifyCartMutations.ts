@@ -1,10 +1,9 @@
-export const CREATE_CART_MUTATION = `#graphql
-mutation CreateCart($lines: [CartLineInput!]) {
-  cartCreate(input: { lines: $lines }) {
-    cart {
+export const GET_CART_QUERY = `
+  query GetCart($cartId: ID!) {
+    cart(id: $cartId) {
       id
       checkoutUrl
-      lines(first: 10) {
+      lines(first: 50) {
         edges {
           node {
             id
@@ -13,6 +12,14 @@ mutation CreateCart($lines: [CartLineInput!]) {
               ... on ProductVariant {
                 id
                 title
+                priceV2 {
+                  amount
+                  currencyCode
+                }
+                selectedOptions {
+                  name
+                  value
+                }
                 product {
                   title
                   featuredImage {
@@ -25,65 +32,38 @@ mutation CreateCart($lines: [CartLineInput!]) {
         }
       }
     }
-    userErrors {
-      field
-      message
-    }
   }
-}`;
+`;
 
-export const ADD_TO_CART_MUTATION = `#graphql
-mutation AddToCart($cartId: ID!, $lines: [CartLineInput!]!) {
-  cartLinesAdd(cartId: $cartId, lines: $lines) {
-    cart {
-      id
-      checkoutUrl
-      lines(first: 10) {
-        edges {
-          node {
-            id
-            quantity
-            merchandise {
-              ... on ProductVariant {
-                id
-                title
-                product {
-                  title
-                  featuredImage {
-                    url
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    userErrors {
-      field
-      message
-    }
-  }
-}`;
-
-export const GET_CART_QUERY = `#graphql
-query GetCart($cartId: ID!) {
-  cart(id: $cartId) {
-    id
-    checkoutUrl
-    lines(first: 10) {
-      edges {
-        node {
-          id
-          quantity
-          merchandise {
-            ... on ProductVariant {
+export const CREATE_CART_MUTATION = `
+  mutation CreateCart($lines: [CartLineInput!]) {
+    cartCreate(input: { lines: $lines }) {
+      cart {
+        id
+        checkoutUrl
+        lines(first: 50) {
+          edges {
+            node {
               id
-              title
-              product {
-                title
-                featuredImage {
-                  url
+              quantity
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                  priceV2 {
+                    amount
+                    currencyCode
+                  }
+                  selectedOptions {
+                    name
+                    value
+                  }
+                  product {
+                    title
+                    featuredImage {
+                      url
+                    }
+                  }
                 }
               }
             }
@@ -92,4 +72,43 @@ query GetCart($cartId: ID!) {
       }
     }
   }
-}`;
+`;
+
+export const ADD_TO_CART_MUTATION = `
+  mutation AddToCart($cartId: ID!, $lines: [CartLineInput!]!) {
+    cartLinesAdd(cartId: $cartId, lines: $lines) {
+      cart {
+        id
+        checkoutUrl
+        lines(first: 50) {
+          edges {
+            node {
+              id
+              quantity
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                  priceV2 {
+                    amount
+                    currencyCode
+                  }
+                  selectedOptions {
+                    name
+                    value
+                  }
+                  product {
+                    title
+                    featuredImage {
+                      url
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
