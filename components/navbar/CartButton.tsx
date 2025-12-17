@@ -1,7 +1,5 @@
 "use client";
 
-import { LiaShoppingBagSolid } from "react-icons/lia";
-
 interface Props {
   quantity: number;
   onClick: () => void;
@@ -9,10 +7,13 @@ interface Props {
 
 export default function CartButton({ quantity, onClick }: Props) {
   return (
-    <button className="relative text-xl" onClick={onClick}>
-      <LiaShoppingBagSolid />
+    <button
+      onClick={onClick}
+      className="relative  tracking-wide"
+    >
+      bag
       {quantity > 0 && (
-        <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full px-1.5">
+        <span className="absolute -top-1 -right-2 text-[10px] text-[#1c2de7]">
           {quantity}
         </span>
       )}

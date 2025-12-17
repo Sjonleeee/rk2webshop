@@ -19,7 +19,7 @@ export default function CartDrawer({ open, onClose, lines, subtotal }: Props) {
     <>
       <div className="fixed inset-0 bg-black/40 z-9998" onClick={onClose} />
 
-      <aside className="fixed right-0 top-0 h-screen w-full sm:w-[420px] bg-white z-9999 flex flex-col">
+      <aside className="fixed right-0 top-0 h-screen w-full sm:w-[420px] bg-[#F6F7FB] z-9999 flex flex-col">
         <div className="flex items-center justify-between px-6 py-5">
           <h2 className="text-lg font-semibold">
             Your selection ({lines.length})

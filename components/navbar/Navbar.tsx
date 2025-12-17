@@ -25,16 +25,11 @@ export default function Navbar() {
 
   const lines = cart?.lines?.edges ?? [];
 
-  const totalQty = lines.reduce(
-    (sum, edge) => sum + edge.node.quantity,
-    0
-  );
+  const totalQty = lines.reduce((sum, edge) => sum + edge.node.quantity, 0);
 
   const subtotal = lines
     .reduce((sum, edge) => {
-      const price = parseFloat(
-        edge.node.merchandise.priceV2?.amount ?? "0"
-      );
+      const price = parseFloat(edge.node.merchandise.priceV2?.amount ?? "0");
       return sum + price * edge.node.quantity;
     }, 0)
     .toFixed(2);
@@ -44,11 +39,10 @@ export default function Navbar() {
       <FreeShippingBanner />
 
       <nav className="sticky top-0 z-50 flex items-center px-4 sm:px-8 py-4 bg-[#F6F7FB]/60 backdrop-blur-xl shadow-sm">
-        <NavLinks
-          menuOpen={menuOpen}
-          onToggle={() => setMenuOpen((v) => !v)}
-        />
+        {/* LEFT */}
+        <NavLinks menuOpen={menuOpen} onToggle={() => setMenuOpen((v) => !v)} />
 
+        {/* CENTER LOGO */}
         <div className="absolute left-1/2 -translate-x-1/2">
           <Image
             src="/rk2.png"
@@ -56,16 +50,15 @@ export default function Navbar() {
             width={800}
             height={100}
             className="h-40 w-auto"
+            priority
           />
         </div>
 
+        {/* RIGHT */}
         <div className="flex items-center gap-6 flex-1 justify-end">
-          <LuSearch className="text-xl" />
-          <CartButton
-            quantity={totalQty}
-            onClick={() => setCartOpen(true)}
-          />
-          <VscAccount className="text-xl" />
+          <LuSearch className="text-[16px] opacity-70 hover:opacity-100 transition-opacity" />
+          <CartButton quantity={totalQty} onClick={() => setCartOpen(true)} />
+          <VscAccount className="text-[16px] opacity-70 hover:opacity-100 transition-opacity" />
         </div>
       </nav>
 

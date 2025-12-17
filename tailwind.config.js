@@ -7,15 +7,18 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        antikor: ['"Antikor Mono"', "monospace"],
+      },
       colors: {
-        primary: '#262963',
-        secondary: '#5D67B0',
+        primary: "#262963",
+        secondary: "#5D67B0",
         neutral: {
-          light: '#F6F7FB',
-          dark: '#191919',
+          light: "#F6F7FB",
+          dark: "#191919",
         },
-        background: '#F6F7FB',
-        foreground: '#191919',
+        background: "#F6F7FB",
+        foreground: "#191919",
       },
     },
   },

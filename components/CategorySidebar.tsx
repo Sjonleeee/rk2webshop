@@ -1,4 +1,5 @@
 "use client";
+
 interface CategorySidebarProps {
   categories: string[];
   setHoveredCategory: (cat: string | null) => void;
@@ -8,59 +9,73 @@ export default function CategorySidebar({
   categories,
   setHoveredCategory,
 }: CategorySidebarProps) {
-  // Sorteer de categorieën alfabetisch (hoofdletterongevoelig)
+  // Sorteer alfabetisch (case-insensitive)
   const sortedCategories = [...categories].sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" })
   );
+
+  /* ========= SHARED STYLES ========= */
+  const desktopButton =
+    "text-[11px] font-medium leading-tight px-1 py-[2px] text-left transition-colors duration-150";
+
+  const mobileButton =
+    "text-[12px] px-2 py-1 rounded font-medium text-left border border-gray-200 transition-colors hover:text-[#2B3AE1]";
+
   return (
-    <aside className="w-[200px] min-w-[180px] max-w-xs">
-      <h2 className="text-lg font-semibold mb-6">Categories</h2>
+    <aside
+      className="
+        pointer-events-auto
+        sm:sticky sm:top-24
+        sm:z-20
+        sm:w-[180px]
+        sm:ml-8
+      "
+    >
       <nav className="group/category-menu">
-        {/* Mobiel: grid met wrapping, filtering via click (geen Link) */}
-        <div className="sm:hidden flex flex-wrap gap-2 mb-4 w-screen max-w-none -ml-4 pl-4 pr-4">
+        {/* ================= MOBILE ================= */}
+        <div className="sm:hidden flex flex-wrap gap-2 mb-4 w-screen max-w-none -ml-4 px-4">
           <button
             type="button"
-            key="all-mobile"
-            className="text-sm px-2 py-1 rounded font-medium text-left hover:text-[#2B3AE1] hover:font-bold transition-colors border border-gray-200"
-            onClick={() => setHoveredCategory(null)}
-            aria-label="Toon alle categorieën"
-          >
-            All
-          </button>
-          {sortedCategories.map((category) => (
-            <button
-              type="button"
-              key={category + "-mobile"}
-              className="text-sm px-2 py-1 rounded font-medium text-left hover:text-[#2B3AE1] hover:font-bold transition-colors border border-gray-200"
-              onClick={() => setHoveredCategory(category)}
-              aria-label={`Filter op categorie ${category}`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-        {/* Desktop: verticale lijst met hover preview en click filter, a11y-proof */}
-        <div className="hidden sm:flex flex-col">
-          <button
-            type="button"
-            key="all"
-            className="text-sm px-2 py-1 rounded font-medium text-left group-hover/category-menu:text-gray-400 hover:text-[#2B3AE1] hover:font-bold cursor-pointer transition-all duration-200 hover:translate-x-4 hover:scale-110 "
-            onMouseEnter={() => setHoveredCategory(null)}
-            onMouseLeave={() => setHoveredCategory(null)}
+            className={mobileButton}
             onClick={() => setHoveredCategory(null)}
             aria-label="Show all categories"
           >
             All
           </button>
+
           {sortedCategories.map((category) => (
             <button
+              key={`${category}-mobile`}
               type="button"
+              className={mobileButton}
+              onClick={() => setHoveredCategory(category)}
+              aria-label={`Filter by category ${category}`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {/* ================= DESKTOP ================= */}
+        <div className="hidden sm:flex flex-col gap-0 bg-white/70 backdrop-blur-sm p-2 rounded-md">
+          <button
+            type="button"
+            className={`${desktopButton} group-hover/category-menu:text-gray-400 hover:text-[#1c2de7]`}
+            onMouseEnter={() => setHoveredCategory(null)}
+            onMouseLeave={() => setHoveredCategory(null)}
+            onClick={() => setHoveredCategory(null)}
+          >
+            All
+          </button>
+
+          {sortedCategories.map((category) => (
+            <button
               key={category}
-              className="text-sm px-2 py-1 rounded font-medium text-left group-hover/category-menu:text-gray-400 hover:text-[#2B3AE1] hover:font-bold cursor-pointer transition-all duration-200 hover:translate-x-4 hover:scale-110 "
+              type="button"
+              className={`${desktopButton} group-hover/category-menu:text-gray-400 hover:text-[#1c2de7]`}
               onMouseEnter={() => setHoveredCategory(category)}
               onMouseLeave={() => setHoveredCategory(null)}
               onClick={() => setHoveredCategory(category)}
-              aria-label={`Filter op categorie ${category}`}
             >
               {category}
             </button>

@@ -14,5 +14,27 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+  @font-face {
+    font-family: "Antikor Mono";
+    src: url("/fonts/AntikorMono-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Antikor Mono";
+    src: url("/fonts/AntikorMono-Light.woff2") format("woff2");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+}
+
+body {
+  font-family: "Antikor Mono", monospace;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
 }
