@@ -13,13 +13,22 @@ interface Props {
 }
 
 export default function CartDrawer({ open, onClose, lines, subtotal }: Props) {
-  if (!open) return null;
-
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-9998" onClick={onClose} />
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/40 z-9998 transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
 
-      <aside className="fixed right-0 top-0 h-screen w-full sm:w-[420px] bg-[#F6F7FB] z-9999 flex flex-col">
+      {/* Drawer */}
+      <aside
+        className={`fixed right-0 top-0 h-screen w-full sm:w-[420px] bg-[#F6F7FB] z-9999 flex flex-col transition-transform duration-300 ease-out ${
+          open ? "translate-x-0" : "translate-x-full pointer-events-none"
+        }`}
+      >
         <div className="flex items-center justify-between px-6 py-5">
           <h2 className="text-lg font-semibold">
             Your selection ({lines.length})

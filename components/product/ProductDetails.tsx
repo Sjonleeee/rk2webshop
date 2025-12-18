@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import AddToCartButton from "@/components/cart/AddToCartButton";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface ProductImage {
   url: string;
@@ -49,6 +49,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   );
   const outOfStock = variants.every((v) => v.quantityAvailable === 0);
 
+  // Ref voor eventuele animaties / scroll positioning van de productafbeelding
+  const productImageRef = useRef<HTMLDivElement | null>(null);
+
   const productForCart = {
     id: product.id,
     title: product.title,
@@ -72,7 +75,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
         {/* Middle: Product image */}
         <div className="flex-1">
-          <div className="w-full aspect-square relative mb-6 flex items-center justify-center rounded-lg">
+          <div
+            ref={productImageRef}
+            className="w-full aspect-square relative mb-6 flex items-center justify-center rounded-lg"
+          >
             {image ? (
               <Image
                 src={image.url}
