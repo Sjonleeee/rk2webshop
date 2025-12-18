@@ -22,7 +22,7 @@ export default function NavLinks({ menuOpen, onToggle }: Props) {
 
       {/* Desktop nav */}
       <ul className="hidden sm:flex gap-6 flex-1">
-        <li><Link href="/shop">Men/Women</Link></li>
+        <li><Link href="/shop">Shop</Link></li>
         <li><Link href="/about">About us</Link></li>
         <li><Link href="/contact">Contact</Link></li>
       </ul>

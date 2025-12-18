@@ -50,9 +50,6 @@ export default function ShopClient({
   categories,
 }: ShopClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  // Als een category gekozen/gehoverd wordt, scroll soepel en rustig naar
-  // het eerste product van dat type.
   useEffect(() => {
     if (!selectedCategory) return;
 
@@ -61,9 +58,15 @@ export default function ShopClient({
       const el = document.getElementById(`category-${slug}`);
       if (!el) return;
 
-      el.scrollIntoView({
+      // Bepaal een offset zodat het product net onder navbar + categorybar valt
+      const isMobile = window.innerWidth < 640;
+      const offset = isMobile ? 150 : 180; // px
+      const rect = el.getBoundingClientRect();
+      const targetY = rect.top + window.scrollY - offset;
+
+      window.scrollTo({
+        top: targetY,
         behavior: "smooth",
-        block: "center", // scroll naar midden van viewport, voelt rustiger
       });
     });
 
@@ -71,31 +74,16 @@ export default function ShopClient({
   }, [selectedCategory]);
 
   return (
-    <>
-      {/* Mobile */}
-      <div className="block sm:hidden mb-6">
-        <CategorySidebar
-          categories={categories}
-          setHoveredCategory={setSelectedCategory}
-        />
-      </div>
+    <div className="flex flex-col sm:flex-row gap-4">
+      <CategorySidebar
+        selectedCategory={selectedCategory}
+        categories={categories}
+        setHoveredCategory={setSelectedCategory}
+      />
 
-      <div className="flex">
-        {/* Desktop */}
-        <div className="hidden sm:block">
-          <CategorySidebar
-            categories={categories}
-            setHoveredCategory={setSelectedCategory}
-          />
-        </div>
-
-        <main className="flex-1">
-          <ProductGrid
-            products={products}
-            selectedCategory={selectedCategory}
-          />
-        </main>
-      </div>
-    </>
+      <main className="flex-1">
+        <ProductGrid products={products} selectedCategory={selectedCategory} />
+      </main>
+    </div>
   );
 }

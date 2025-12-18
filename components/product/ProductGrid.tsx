@@ -65,9 +65,9 @@ export default function ProductGrid({
   const seenTypes = new Set<string>();
 
   return (
-    <div className="grid grid-cols-5 ">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {sortedProducts.map(({ node }) => {
-        const isDimmed =
+        const isOtherCategory =
           selectedCategory &&
           selectedCategory !== "" &&
           node.productType !== selectedCategory;
@@ -84,7 +84,9 @@ export default function ProductGrid({
             key={node.id}
             id={isFirstOfType ? `category-${slug}` : undefined}
             className={`transition-opacity duration-200 ${
-              isDimmed ? "opacity-15" : "opacity-100"
+              // Op mobiel alleen geselecteerde category tonen,
+              // op desktop overige categories dimmen i.p.v. verbergen.
+              isOtherCategory ? "hidden sm:block sm:opacity-15" : "opacity-100"
             }`}
           >
             <ProductCard product={node} />
