@@ -1,5 +1,5 @@
 import Navbar from "./navbar/Navbar";
-import CategorySidebar from "./CategorySidebar";
+import CategorySidebar from "@/components/product/CategorySidebar";
 import React from "react";
 
 interface ShopLayoutProps {

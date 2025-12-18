@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import ProductGrid from "@/components/ProductGrid";
-import CategorySidebar from "@/components/CategorySidebar";
-
+import ProductGrid from "@/components/product/ProductGrid";
+import CategorySidebar from "@/components/product/CategorySidebar";
 
 // Types (gelijk aan page.tsx)
 interface ProductImage {

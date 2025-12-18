@@ -1,6 +1,6 @@
-import { storefront } from "@/lib/shopify";
-import { PRODUCT_QUERY } from "@/lib/queries";
-import ProductDetails from "@/components/ProductDetails";
+import { storefront } from "@/lib/shopify/client";
+import { PRODUCT_QUERY } from "@/lib/shopify/queries/products";
+import ProductDetails from "@/components/product/ProductDetails";
 
 export default async function ProductPage({
   params,

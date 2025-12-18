@@ -58,8 +58,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={image.altText || product.title}
             width={400}
             height={400}
-            sizes="(max-width: 680px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover w-full h-full max-w-[220px] max-h-[210px] mx-auto transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-2 "
+            className="object-cover w-full h-full max-w-[230px] max-h-[210px] mx-auto transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-2 "
             priority={false}
           />
         </div>

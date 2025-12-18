@@ -1,13 +1,13 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { storefront } from "@/lib/shopify";
+import { storefront } from "@/lib/shopify/client";
 import {
   CREATE_CART_MUTATION,
   GET_CART_QUERY,
   ADD_TO_CART_MUTATION,
-} from "@/lib/shopifyCartMutations";
-import { REMOVE_FROM_CART_MUTATION } from "@/lib/shopifyCartMutationsRemove";
+} from "@/lib/shopify/cart/mutations";
+import { REMOVE_FROM_CART_MUTATION } from "@/lib/shopify/cart/mutations-remove";
 
 /* =======================
    Types (MATCH Shopify)

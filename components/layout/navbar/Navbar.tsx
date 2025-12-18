@@ -4,7 +4,7 @@ import Image from "next/image";
 import { LuSearch } from "react-icons/lu";
 import { VscAccount } from "react-icons/vsc";
 import { useState, useEffect } from "react";
-import { useCart } from "../CartContext";
+import { useCart } from "@/components/providers/CartContext";
 
 import FreeShippingBanner from "./FreeShippingBanner";
 import NavLinks from "./NavLinks";

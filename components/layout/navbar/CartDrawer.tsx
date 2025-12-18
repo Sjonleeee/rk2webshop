@@ -3,7 +3,7 @@
 import { HiX } from "react-icons/hi";
 import CartItem from "./CartItem";
 import CartEmptyState from "./CartEmptyState";
-import { ShopifyCartLine } from "../CartContext";
+import { ShopifyCartLine } from "@/components/providers/CartContext";
 
 interface Props {
   open: boolean;

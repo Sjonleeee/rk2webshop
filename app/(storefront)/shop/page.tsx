@@ -1,6 +1,6 @@
-import { storefront } from "@/lib/shopify";
-import { GET_PRODUCTS_QUERY } from "@/lib/queries";
-import ShopClient from "./ShopClient";
+import { storefront } from "@/lib/shopify/client";
+import { GET_PRODUCTS_QUERY } from "@/lib/shopify/queries/products";
+import ShopClient from "@/components/product/ShopClient";
 
 // Types
 interface ProductImage {

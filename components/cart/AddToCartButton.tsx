@@ -1,5 +1,5 @@
 "use client";
-import { useCart } from "./CartContext";
+import { useCart } from "@/components/providers/CartContext";
 
 interface AddToCartButtonProps {
   product: {

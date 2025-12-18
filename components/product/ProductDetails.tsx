@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import AddToCartButton from "@/components/AddToCartButton";
+import AddToCartButton from "@/components/cart/AddToCartButton";
 import { useState } from "react";
 
 interface ProductImage {

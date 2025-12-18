@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useCart } from "../CartContext";
-import { ShopifyCartLine } from "../CartContext";
+import { useCart } from "@/components/providers/CartContext";
+import { ShopifyCartLine } from "@/components/providers/CartContext";
 
 interface Props {
   line: ShopifyCartLine;
