@@ -1,10 +1,60 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #191919;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* R/K2 brand tokens (HSL) */
+  --rk2-color-primary: 244 44% 26%; /* #262963 */
+  --rk2-color-primary-soft: 234 59% 95%; /* ~#F6F7FB */
+  --rk2-color-accent: 234 70% 46%; /* ~#2433C4 / #1c2de7 */
+
+  /* Neutrals */
+  --rk2-color-bg: 234 59% 96%;
+  --rk2-color-fg: 0 0% 10%;
+  --rk2-color-muted: 0 0% 45%;
+  --rk2-color-border: 0 0% 85%;
+  --rk2-color-danger: 0 74% 54%;
+
+  /* Spacing scale */
+  --rk2-space-xs: 0.25rem; /* 4px */
+  --rk2-space-sm: 0.5rem; /* 8px */
+  --rk2-space-md: 1rem; /* 16px */
+  --rk2-space-lg: 1.5rem; /* 24px */
+  --rk2-space-xl: 2.5rem; /* 40px */
+  --rk2-space-2xl: 3rem; /* 48px */
+
+  /* Radii */
+  --rk2-radius-sm: 0.25rem;
+  --rk2-radius-md: 0.5rem;
+  --rk2-radius-lg: 1rem;
+  --rk2-radius-full: 9999px;
+
+  /* Typography */
+  --rk2-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", Arial, sans-serif;
+  --rk2-font-display: "Antikor Mono", system-ui, monospace;
+
+  --rk2-text-xs: 0.75rem;
+  --rk2-text-sm: 0.875rem;
+  --rk2-text-md: 1rem;
+  --rk2-text-lg: 1.125rem;
+  --rk2-text-xl: 1.5rem;
+  --rk2-text-2xl: 2rem;
+  --rk2-text-3xl: 2.5rem;
+
+  --rk2-font-weight-regular: 400;
+  --rk2-font-weight-medium: 500;
+  --rk2-font-weight-semibold: 600;
+  --rk2-font-weight-bold: 700;
+
+  /* Layout */
+  --rk2-page-max-width: 80rem; /* 1280px */
+  --rk2-page-padding-x: 1rem;
+  --rk2-page-padding-y: 2rem;
+
+  /* Legacy mappings for existing code */
+  --background: hsl(var(--rk2-color-bg));
+  --foreground: hsl(var(--rk2-color-fg));
+  --font-sans: var(--rk2-font-sans);
+  --font-mono: var(--rk2-font-display);
 }
 
 html {
