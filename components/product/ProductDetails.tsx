@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
+import { useCart } from "@/components/providers/CartContext";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 
 interface ProductImage {
@@ -41,13 +42,48 @@ interface ProductDetailsProps {
 }
 
 export default function ProductDetails({ product }: ProductDetailsProps) {
+  const { cart } = useCart();
   const variants = product.variants.edges.map((edge) => edge.node);
   const image = product.images.edges[0]?.node;
   const price = product.priceRange.minVariantPrice;
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     variants[0]?.id || null
   );
-  const outOfStock = variants.every((v) => v.quantityAvailable === 0);
+
+  // Calculate how many items of each variant are already in cart
+  const variantQuantitiesInCart = useMemo(() => {
+    const quantities: Record<string, number> = {};
+    if (cart?.lines?.edges) {
+      cart.lines.edges.forEach((line) => {
+        const variantId = line.node.merchandise.id;
+        quantities[variantId] = (quantities[variantId] || 0) + line.node.quantity;
+      });
+    }
+    return quantities;
+  }, [cart]);
+
+  // Calculate available stock for each variant (stock - items in cart)
+  const getAvailableStock = (variantId: string) => {
+    const variant = variants.find((v) => v.id === variantId);
+    if (!variant) return 0;
+    const inCart = variantQuantitiesInCart[variantId] || 0;
+    return Math.max(0, variant.quantityAvailable - inCart);
+  };
+
+  // Check if variant is out of stock (considering cart)
+  const isVariantOutOfStock = (variantId: string) => {
+    return getAvailableStock(variantId) === 0;
+  };
+
+  // Check if product is truly out of stock (original stock is 0, not just in cart)
+  const isTrulyOutOfStock = variants.every(
+    (v) => v.quantityAvailable === 0
+  );
+  
+  // Check if selected variant has available stock (considering cart)
+  const selectedVariantOutOfStock = selectedVariantId
+    ? isVariantOutOfStock(selectedVariantId)
+    : true;
 
   // Ref voor eventuele animaties / scroll positioning van de productafbeelding
   const productImageRef = useRef<HTMLDivElement | null>(null);
@@ -97,35 +133,42 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
             <div className="mb-8">
               <p className="text-sm font-semibold mb-4">Available Sizes</p>
-              {outOfStock ? (
+              {isTrulyOutOfStock ? (
                 <p className="text-red-600 font-semibold">Out of Stock</p>
               ) : (
                 <div className="grid grid-cols-3 gap-3">
-                  {variants.map((variant) => (
-                    <button
-                      key={variant.id}
-                      disabled={variant.quantityAvailable === 0}
-                      className={`border-2 rounded-lg py-0.5 px-1 text-center transition ${
-                        variant.quantityAvailable === 0
-                          ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : selectedVariantId === variant.id
-                          ? "border-black bg-black text-white"
-                          : "border-gray-300 hover:border-black"
-                      }`}
-                      onClick={() => setSelectedVariantId(variant.id)}
-                    >
-                      <p className="text-xs font-medium">{variant.title}</p>
-                    </button>
-                  ))}
+                  {variants.map((variant) => {
+                    const isOutOfStock = isVariantOutOfStock(variant.id);
+                    return (
+                      <button
+                        key={variant.id}
+                        disabled={isOutOfStock}
+                        className={`border-2 rounded-lg py-0.5 px-1 text-center transition ${
+                          isOutOfStock
+                            ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : selectedVariantId === variant.id
+                            ? "border-black bg-black text-white"
+                            : "border-gray-300 hover:border-black"
+                        }`}
+                        onClick={() => {
+                          if (!isOutOfStock) {
+                            setSelectedVariantId(variant.id);
+                          }
+                        }}
+                      >
+                        <p className="text-xs font-medium">{variant.title}</p>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
             {/* Add to Cart Button */}
-            {!outOfStock && (
+            {!isTrulyOutOfStock && (
               <AddToCartButton
                 variantId={selectedVariantId}
-                disabled={!selectedVariantId}
+                disabled={!selectedVariantId || selectedVariantOutOfStock}
               />
             )}
           </div>

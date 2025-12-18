@@ -25,54 +25,71 @@ export default function AddToCartButton({
     setIsLoading(true);
     setError(null);
 
-    try {
-      await addToCart(variantId, 1);
+    // Start smooth animation immediately for better UX
+    let dotElement: HTMLDivElement | null = null;
+    if (typeof window !== "undefined" && buttonRef.current) {
+      const bagEl = document.getElementById("cart-bag-target");
+      const sourceEl = buttonRef.current;
 
-      // Visual feedback: animate dot to cart
-      if (typeof window !== "undefined" && buttonRef.current) {
-        const bagEl = document.getElementById("cart-bag-target");
-        const sourceEl = buttonRef.current;
+      if (bagEl) {
+        const sourceRect = sourceEl.getBoundingClientRect();
+        const targetRect = bagEl.getBoundingClientRect();
 
-        if (bagEl) {
-          const sourceRect = sourceEl.getBoundingClientRect();
-          const targetRect = bagEl.getBoundingClientRect();
+        // Calculate positions
+        const startX = sourceRect.left + sourceRect.width / 2;
+        const startY = sourceRect.top + sourceRect.height / 2;
+        const endX = targetRect.left + targetRect.width / 2;
+        const endY = targetRect.top + targetRect.height / 2;
 
-          const dot = document.createElement("div");
-          dot.style.position = "fixed";
-          dot.style.zIndex = "99999";
-          dot.style.width = "12px";
-          dot.style.height = "12px";
-          dot.style.borderRadius = "9999px";
-          dot.style.backgroundColor = "#1c2de7";
-          dot.style.left = `${sourceRect.left + sourceRect.width / 2}px`;
-          dot.style.top = `${sourceRect.top + sourceRect.height / 2}px`;
-          dot.style.transform = "translate(-50%, -50%) scale(1)";
-          dot.style.opacity = "1";
+        const dot = document.createElement("div");
+        dot.style.position = "fixed";
+        dot.style.zIndex = "99999";
+        dot.style.width = "14px";
+        dot.style.height = "14px";
+        dot.style.borderRadius = "50%";
+        dot.style.backgroundColor = "#1c2de7";
+        dot.style.boxShadow = "0 2px 8px rgba(28, 45, 231, 0.4)";
+        dot.style.left = `${startX}px`;
+        dot.style.top = `${startY}px`;
+        dot.style.transform = "translate(-50%, -50%) scale(1)";
+        dot.style.opacity = "1";
+        dot.style.pointerEvents = "none";
+        dot.style.willChange = "transform, opacity";
 
-          document.body.appendChild(dot);
+        document.body.appendChild(dot);
+        dotElement = dot;
 
+        // Use double RAF for smoother animation start
+        window.requestAnimationFrame(() => {
           window.requestAnimationFrame(() => {
-            const translateX =
-              targetRect.left +
-              targetRect.width / 2 -
-              (sourceRect.left + sourceRect.width / 2);
-            const translateY =
-              targetRect.top +
-              targetRect.height / 2 -
-              (sourceRect.top + sourceRect.height / 2);
+            const translateX = endX - startX;
+            const translateY = endY - startY;
 
+            // Ultra-smooth easing: natural ease-out curve
+            // Starts fast, slows down gracefully at the end
             dot.style.transition =
-              "transform 450ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 450ms";
-            dot.style.transform = `translate(${translateX}px, ${translateY}px) scale(0.3)`;
+              "transform 650ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 650ms cubic-bezier(0.4, 0, 0.2, 1)";
+            dot.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(0.15)`;
             dot.style.opacity = "0";
           });
+        });
 
-          window.setTimeout(() => {
-            dot.remove();
-          }, 500);
-        }
+        // Clean up after animation completes
+        window.setTimeout(() => {
+          if (dotElement && dotElement.parentNode) {
+            dotElement.remove();
+          }
+        }, 700);
       }
+    }
+
+    try {
+      await addToCart(variantId, 1);
     } catch (err) {
+      // Remove dot if error occurs
+      if (dotElement && dotElement.parentNode) {
+        dotElement.remove();
+      }
       setError("Failed to add item to cart. Please try again.");
       console.error("Add to cart error:", err);
     } finally {
@@ -134,4 +151,3 @@ export default function AddToCartButton({
     </div>
   );
 }
-
