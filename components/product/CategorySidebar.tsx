@@ -21,8 +21,9 @@ export default function CategorySidebar({
   const HOVER_TEXT_COLOR = "hover:text-[#1c2de7]";
   const DIM_TEXT_COLOR = "group-hover/category-menu:text-gray-400";
 
+  // Desktop: compact, dichter op elkaar
   const verticalButtonClasses =
-    "text-[13px] font-medium leading-tight px-3 py-2 text-left transition-colors duration-150";
+    "text-[11px] font-medium leading-tight px-1 py-[2px] text-left transition-colors duration-150";
 
   const mobileButtonBase =
     "text-[14px] px-4 py-2 rounded-full font-medium text-left border bg-white/80 backdrop-blur-sm whitespace-nowrap transition-colors";
@@ -40,9 +41,11 @@ export default function CategorySidebar({
       className="
         pointer-events-auto
         sticky z-20
-        top-16 sm:top-16
+        top-16 sm:top-24
         w-full
         sm:w-[140px]
+        sm:self-start
+        sm:max-h-[calc(100vh-6rem)]
       "
     >
       <nav className="group/category-menu">
