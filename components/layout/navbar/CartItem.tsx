@@ -15,12 +15,13 @@ export default function CartItem({ line }: Props) {
 
   const product = line.node.merchandise.product;
   const options = line.node.merchandise.selectedOptions ?? [];
-  const size = options.find((o) => o.name === "Size")?.value;
+  const size = options.find((o) => o.name.toLowerCase() === "size")?.value || 
+               options.find((o) => o.name === "Size")?.value;
 
-  const price = parseFloat(
-    line.node.merchandise.priceV2?.amount ?? "0"
-  );
-  const lineTotal = (price * line.node.quantity).toFixed(2);
+  // Gebruik cost.totalAmount als beschikbaar, anders bereken handmatig
+  const lineTotal = line.node.cost?.totalAmount?.amount 
+    ? parseFloat(line.node.cost.totalAmount.amount).toFixed(2)
+    : (parseFloat(line.node.merchandise.priceV2?.amount ?? "0") * line.node.quantity).toFixed(2);
 
   const handleRemove = () => {
     setIsRemoving(true);
