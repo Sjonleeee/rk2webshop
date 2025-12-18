@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProductGrid from "@/components/product/ProductGrid";
 import CategorySidebar from "@/components/product/CategorySidebar";
 
@@ -50,6 +50,25 @@ export default function ShopClient({
   categories,
 }: ShopClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Als een category gekozen/gehoverd wordt, scroll soepel en rustig naar
+  // het eerste product van dat type.
+  useEffect(() => {
+    if (!selectedCategory) return;
+
+    const handle = window.requestAnimationFrame(() => {
+      const slug = selectedCategory.toLowerCase().replace(/\s+/g, "-");
+      const el = document.getElementById(`category-${slug}`);
+      if (!el) return;
+
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center", // scroll naar midden van viewport, voelt rustiger
+      });
+    });
+
+    return () => window.cancelAnimationFrame(handle);
+  }, [selectedCategory]);
 
   return (
     <>

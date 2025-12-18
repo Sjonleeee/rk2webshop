@@ -60,6 +60,10 @@ export default function ProductGrid({
     return 0;
   });
 
+  // Houd bij voor welk type we al een anchor hebben gezet,
+  // zodat we bij elke category een scroll-doel hebben.
+  const seenTypes = new Set<string>();
+
   return (
     <div className="grid grid-cols-5 ">
       {sortedProducts.map(({ node }) => {
@@ -67,9 +71,18 @@ export default function ProductGrid({
           selectedCategory &&
           selectedCategory !== "" &&
           node.productType !== selectedCategory;
+
+        const typeKey = node.productType?.toLowerCase() || "";
+        const slug = typeKey.replace(/\s+/g, "-");
+        const isFirstOfType = !seenTypes.has(typeKey);
+        if (isFirstOfType) {
+          seenTypes.add(typeKey);
+        }
+
         return (
           <div
             key={node.id}
+            id={isFirstOfType ? `category-${slug}` : undefined}
             className={`transition-opacity duration-200 ${
               isDimmed ? "opacity-15" : "opacity-100"
             }`}
