@@ -44,9 +44,25 @@ export default function ProductGrid({
   products,
   selectedCategory,
 }: ProductGridProps) {
+  // Sorteer zodat producten van hetzelfde type (productType) bij elkaar staan
+  const sortedProducts = [...products].sort((a, b) => {
+    const typeA = a.node.productType?.toLowerCase() || "";
+    const typeB = b.node.productType?.toLowerCase() || "";
+
+    if (typeA < typeB) return -1;
+    if (typeA > typeB) return 1;
+
+    // Als type gelijk is, sorteer op titel
+    const titleA = a.node.title.toLowerCase();
+    const titleB = b.node.title.toLowerCase();
+    if (titleA < titleB) return -1;
+    if (titleA > titleB) return 1;
+    return 0;
+  });
+
   return (
     <div className="grid grid-cols-5 ">
-      {products.map(({ node }) => {
+      {sortedProducts.map(({ node }) => {
         const isDimmed =
           selectedCategory &&
           selectedCategory !== "" &&

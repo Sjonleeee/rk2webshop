@@ -28,7 +28,7 @@ export default function CategorySidebar({
         sm:sticky sm:top-24
         sm:z-20
         sm:w-[180px]
-        sm:ml-8
+        sm:ml-0
       "
     >
       <nav className="group/category-menu">
