@@ -20,8 +20,7 @@ export default function ShopLayout({
         <div className="hidden sm:block">
           <CategorySidebar
             categories={categories}
-            setHoveredCategory={setHoveredCategory}
-          />
+            setHoveredCategory={setHoveredCategory} selectedCategory={null}          />
         </div>
         <main className="flex-1">{children}</main>
       </div>

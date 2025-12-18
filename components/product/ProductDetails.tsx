@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
-import AddToCartButton from "@/components/cart/AddToCartButton";
 import { useState, useRef } from "react";
+import AddToCartButton from "@/components/cart/AddToCartButton";
 
 interface ProductImage {
   url: string;
@@ -52,16 +52,6 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   // Ref voor eventuele animaties / scroll positioning van de productafbeelding
   const productImageRef = useRef<HTMLDivElement | null>(null);
 
-  const productForCart = {
-    id: product.id,
-    title: product.title,
-    price: price.amount,
-    currency: price.currencyCode,
-    image: image?.url || null,
-    variantId: selectedVariantId,
-    outOfStock,
-  };
-
   return (
     <div className="max-w-7xl mx-auto p-10">
       <div className="flex gap-12">
@@ -105,7 +95,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               </p>
             </div>
 
-            <div>
+            <div className="mb-8">
               <p className="text-sm font-semibold mb-4">Available Sizes</p>
               {outOfStock ? (
                 <p className="text-red-600 font-semibold">Out of Stock</p>
@@ -131,8 +121,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               )}
             </div>
 
-            {/* Stap 1: Add to Cart knop */}
-            {!outOfStock && <AddToCartButton product={productForCart} />}
+            {/* Add to Cart Button */}
+            {!outOfStock && (
+              <AddToCartButton
+                variantId={selectedVariantId}
+                disabled={!selectedVariantId}
+              />
+            )}
           </div>
         </div>
       </div>

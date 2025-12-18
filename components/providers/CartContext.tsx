@@ -3,8 +3,8 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { storefront } from "@/lib/shopify/client";
 import {
-  CREATE_CART_MUTATION,
   GET_CART_QUERY,
+  CREATE_CART_MUTATION,
   ADD_TO_CART_MUTATION,
 } from "@/lib/shopify/cart/mutations";
 import { REMOVE_FROM_CART_MUTATION } from "@/lib/shopify/cart/mutations-remove";
@@ -85,6 +85,7 @@ export function useCart(): CartContextType {
 ======================= */
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  // Initialize cartId from localStorage (SSR-safe)
   const [cartId, setCartId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     return localStorage.getItem("cartId");
@@ -102,24 +103,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
       lines: [{ merchandiseId: variantId, quantity }],
     });
 
-    const newCart = data.cartCreate.cart;
-    setCart(newCart);
-    setCartId(newCart.id);
-    localStorage.setItem("cartId", newCart.id);
+    if (data?.cartCreate?.cart) {
+      const newCart = data.cartCreate.cart;
+      setCart(newCart);
+      setCartId(newCart.id);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cartId", newCart.id);
+      }
+    }
   }
 
   async function addToCart(variantId: string, quantity = 1) {
-    if (!cartId) {
-      await createCart(variantId, quantity);
-      return;
+    try {
+      if (!cartId) {
+        await createCart(variantId, quantity);
+        return;
+      }
+
+      const data = await storefront(ADD_TO_CART_MUTATION, {
+        cartId,
+        lines: [{ merchandiseId: variantId, quantity }],
+      });
+
+      if (data?.cartLinesAdd?.cart) {
+        setCart(data.cartLinesAdd.cart);
+      }
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      throw error;
     }
-
-    const data = await storefront(ADD_TO_CART_MUTATION, {
-      cartId,
-      lines: [{ merchandiseId: variantId, quantity }],
-    });
-
-    setCart(data.cartLinesAdd.cart);
   }
 
   async function removeFromCart(lineId: string) {
@@ -139,10 +151,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("cartId");
   }
 
-  // hydrate cart once if cartId exists
+  // Hydrate cart on mount if cartId exists
   React.useEffect(() => {
-    if (!cartId || cart) return;
-    fetchCart(cartId);
+    if (cartId && !cart) {
+      fetchCart(cartId);
+    }
   }, [cartId, cart]);
 
   return (
