@@ -70,19 +70,18 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     return Math.max(0, variant.quantityAvailable - inCart);
   };
 
-  // Check if variant is out of stock (considering cart)
-  const isVariantOutOfStock = (variantId: string) => {
-    return getAvailableStock(variantId) === 0;
+  // Check if variant has available stock (considering cart)
+  const hasAvailableStock = (variantId: string) => {
+    return getAvailableStock(variantId) > 0;
   };
 
-  // Check if product is truly out of stock (original stock is 0, not just in cart)
-  const isTrulyOutOfStock = variants.every(
-    (v) => v.quantityAvailable === 0
-  );
+  // Check if product is REALLY out of stock (not just in cart)
+  // Only show "Out of Stock" if all variants have 0 quantityAvailable
+  const outOfStock = variants.every((v) => v.quantityAvailable === 0);
   
   // Check if selected variant has available stock (considering cart)
   const selectedVariantOutOfStock = selectedVariantId
-    ? isVariantOutOfStock(selectedVariantId)
+    ? !hasAvailableStock(selectedVariantId)
     : true;
 
   // Ref voor eventuele animaties / scroll positioning van de productafbeelding
@@ -133,25 +132,29 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
             <div className="mb-8">
               <p className="text-sm font-semibold mb-4">Available Sizes</p>
-              {isTrulyOutOfStock ? (
+              {outOfStock ? (
                 <p className="text-red-600 font-semibold">Out of Stock</p>
               ) : (
                 <div className="grid grid-cols-3 gap-3">
                   {variants.map((variant) => {
-                    const isOutOfStock = isVariantOutOfStock(variant.id);
+                    // Disable if variant has no available stock (considering cart)
+                    // But always show the button, even if disabled
+                    const variantHasStock = hasAvailableStock(variant.id);
+                    const isSelected = selectedVariantId === variant.id;
+                    
                     return (
                       <button
                         key={variant.id}
-                        disabled={isOutOfStock}
+                        disabled={!variantHasStock}
                         className={`border-2 rounded-lg py-0.5 px-1 text-center transition ${
-                          isOutOfStock
+                          !variantHasStock
                             ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : selectedVariantId === variant.id
+                            : isSelected
                             ? "border-black bg-black text-white"
                             : "border-gray-300 hover:border-black"
                         }`}
                         onClick={() => {
-                          if (!isOutOfStock) {
+                          if (variantHasStock) {
                             setSelectedVariantId(variant.id);
                           }
                         }}
@@ -165,7 +168,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </div>
 
             {/* Add to Cart Button */}
-            {!isTrulyOutOfStock && (
+            {!outOfStock && (
               <AddToCartButton
                 variantId={selectedVariantId}
                 disabled={!selectedVariantId || selectedVariantOutOfStock}

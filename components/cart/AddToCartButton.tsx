@@ -44,8 +44,8 @@ export default function AddToCartButton({
         const dot = document.createElement("div");
         dot.style.position = "fixed";
         dot.style.zIndex = "99999";
-        dot.style.width = "14px";
-        dot.style.height = "14px";
+        dot.style.width = "12px";
+        dot.style.height = "12px";
         dot.style.borderRadius = "50%";
         dot.style.backgroundColor = "#1c2de7";
         dot.style.boxShadow = "0 2px 8px rgba(28, 45, 231, 0.4)";
@@ -55,6 +55,8 @@ export default function AddToCartButton({
         dot.style.opacity = "1";
         dot.style.pointerEvents = "none";
         dot.style.willChange = "transform, opacity";
+        dot.style.backfaceVisibility = "hidden";
+        dot.style.transformOrigin = "center center";
 
         document.body.appendChild(dot);
         dotElement = dot;
@@ -65,11 +67,10 @@ export default function AddToCartButton({
             const translateX = endX - startX;
             const translateY = endY - startY;
 
-            // Ultra-smooth easing: natural ease-out curve
-            // Starts fast, slows down gracefully at the end
+            // Ultra-smooth easing: refined ease-out curve for cleaner movement
             dot.style.transition =
-              "transform 650ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 650ms cubic-bezier(0.4, 0, 0.2, 1)";
-            dot.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(0.15)`;
+              "transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1), opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)";
+            dot.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(0.2)`;
             dot.style.opacity = "0";
           });
         });
@@ -79,7 +80,7 @@ export default function AddToCartButton({
           if (dotElement && dotElement.parentNode) {
             dotElement.remove();
           }
-        }, 700);
+        }, 650);
       }
     }
 
