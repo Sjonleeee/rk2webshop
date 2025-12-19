@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "@/components/layout/navbar/Navbar";
-import Footer from "@/components/layout/Footer";
+import ConditionalNavbar from "@/components/layout/ConditionalNavbar";
+import ConditionalFooter from "@/components/layout/ConditionalFooter";
 import ClientLayout from "./_client-layout/ClientLayout";
 
 export const metadata: Metadata = {
@@ -18,9 +18,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-antikor antialiased">
         <ClientLayout>
-          <Navbar />
+          <ConditionalNavbar />
           <main>{children}</main>
-          <Footer />
+          <ConditionalFooter />
         </ClientLayout>
       </body>
     </html>
