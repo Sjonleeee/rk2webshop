@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { HiMenu, HiX } from "react-icons/hi";
+import NavDropdown from "./NavDropdown";
 
 interface Props {
   menuOpen: boolean;
   onToggle: () => void;
+  onDropdownOpenChange?: (isOpen: boolean, label: string, items: { label: string; href: string }[]) => void;
 }
 
-export default function NavLinks({ menuOpen, onToggle }: Props) {
+export default function NavLinks({ menuOpen, onToggle, onDropdownOpenChange }: Props) {
   return (
     <>
       {/* Mobile menu button */}
@@ -21,10 +23,49 @@ export default function NavLinks({ menuOpen, onToggle }: Props) {
       </button>
 
       {/* Desktop nav */}
-      <ul className="hidden sm:flex gap-6 flex-1">
-        <li><Link href="/shop">Shop</Link></li>
-        <li><Link href="/about">About us</Link></li>
-        <li><Link href="/contact">Contact</Link></li>
+      <ul className="hidden sm:flex gap-6 flex-1 items-center">
+        <li>
+          <Link href="/shop" className="text-xs hover:opacity-70 transition-opacity">
+            Shop all
+          </Link>
+        </li>
+        <li>
+          <Link href="/about" className="text-xs hover:opacity-70 transition-opacity">
+            About us
+          </Link>
+        </li>
+        <li>
+          <Link href="/collaborations" className="text-xs hover:opacity-70 transition-opacity">
+            Collaborations
+          </Link>
+        </li>
+        <li>
+          <NavDropdown
+            label="More"
+            items={[
+              { label: "Customer Support", href: "/" },
+              { label: "Contact Us", href: "/contact" },
+              { label: "Shipping", href: "/shipping" },
+              { label: "Returns", href: "/returns" },
+              { label: "Links", href: "/" },
+              { label: "About", href: "/about" },
+              { label: "Instagram", href: "https://instagram.com" },
+              { label: "YouTube", href: "https://youtube.com" },
+              { label: "TikTok", href: "https://tiktok.com" },
+            ]}
+            onOpenChange={(isOpen) => onDropdownOpenChange?.(isOpen, "More", [
+              { label: "Customer Support", href: "/" },
+              { label: "Contact Us", href: "/contact" },
+              { label: "Shipping", href: "/shipping" },
+              { label: "Returns", href: "/returns" },
+              { label: "Links", href: "/" },
+              { label: "About", href: "/about" },
+              { label: "Instagram", href: "https://instagram.com" },
+              { label: "YouTube", href: "https://youtube.com" },
+              { label: "TikTok", href: "https://tiktok.com" },
+            ])}
+          />
+        </li>
       </ul>
     </>
   );

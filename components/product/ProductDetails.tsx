@@ -143,24 +143,24 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     const isSelected = selectedVariantId === variant.id;
                     
                     return (
-                      <button
-                        key={variant.id}
+                    <button
+                      key={variant.id}
                         disabled={!variantHasStock}
-                        className={`border-2 rounded-lg py-0.5 px-1 text-center transition ${
+                      className={`border-2 rounded-lg py-0.5 px-1 text-center transition ${
                           !variantHasStock
-                            ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
+                          ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
                             : isSelected
-                            ? "border-black bg-black text-white"
-                            : "border-gray-300 hover:border-black"
-                        }`}
+                          ? "border-black bg-black text-white"
+                          : "border-gray-300 hover:border-black"
+                      }`}
                         onClick={() => {
                           if (variantHasStock) {
                             setSelectedVariantId(variant.id);
                           }
                         }}
-                      >
-                        <p className="text-xs font-medium">{variant.title}</p>
-                      </button>
+                    >
+                      <p className="text-xs font-medium">{variant.title}</p>
+                    </button>
                     );
                   })}
                 </div>

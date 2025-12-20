@@ -35,10 +35,10 @@ export default function HomePage() {
               ss26
             </Link>
             <Link
-              href="/projects"
+              href="/about"
               className="text-xs font-mono text-foreground hover:text-[#1c2de7] transition-colors"
             >
-              projects
+              about us
             </Link>
             <Link
               href="/shop"

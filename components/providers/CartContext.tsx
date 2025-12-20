@@ -104,29 +104,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
 
     if (data?.cartCreate?.cart) {
-      const newCart = data.cartCreate.cart;
-      setCart(newCart);
-      setCartId(newCart.id);
+    const newCart = data.cartCreate.cart;
+    setCart(newCart);
+    setCartId(newCart.id);
       if (typeof window !== "undefined") {
-        localStorage.setItem("cartId", newCart.id);
+    localStorage.setItem("cartId", newCart.id);
       }
     }
   }
 
   async function addToCart(variantId: string, quantity = 1) {
     try {
-      if (!cartId) {
-        await createCart(variantId, quantity);
-        return;
-      }
+    if (!cartId) {
+      await createCart(variantId, quantity);
+      return;
+    }
 
-      const data = await storefront(ADD_TO_CART_MUTATION, {
-        cartId,
-        lines: [{ merchandiseId: variantId, quantity }],
-      });
+    const data = await storefront(ADD_TO_CART_MUTATION, {
+      cartId,
+      lines: [{ merchandiseId: variantId, quantity }],
+    });
 
       if (data?.cartLinesAdd?.cart) {
-        setCart(data.cartLinesAdd.cart);
+    setCart(data.cartLinesAdd.cart);
       }
     } catch (error) {
       console.error("Failed to add to cart:", error);
@@ -154,7 +154,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Hydrate cart on mount if cartId exists
   React.useEffect(() => {
     if (cartId && !cart) {
-      fetchCart(cartId);
+    fetchCart(cartId);
     }
   }, [cartId, cart]);
 
