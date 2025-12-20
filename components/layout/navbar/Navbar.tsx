@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LuSearch } from "react-icons/lu";
 import { VscAccount } from "react-icons/vsc";
+import { HiX } from "react-icons/hi";
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/components/providers/CartContext";
@@ -16,6 +17,7 @@ import CartDrawer from "./CartDrawer";
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState<{
     label: string;
     items: { label: string; href: string }[];
@@ -92,7 +94,6 @@ export default function Navbar() {
           ref={navbarRef}
           className="flex h-14 sm:h-14 md:h-16 items-center px-4 sm:px-8 bg-[#F6F7FB]/60 backdrop-blur-xl shadow-sm"
         >
-          {/* LEFT */}
           <NavLinks
             menuOpen={menuOpen}
             onToggle={() => setMenuOpen((v) => !v)}
@@ -126,29 +127,29 @@ export default function Navbar() {
           />
 
           {/* CENTER LOGO */}
-          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 flex items-center">
+          <div className="navbar-logo-container">
             <Link href="/" aria-label="Go to homepage">
               <Image
                 src="/logos/rk2logo.png"
                 alt="R/K2"
                 width={200}
                 height={20}
-                className="h-6 sm:h-5 md:h-6 w-auto"
+                className="navbar-logo"
                 priority
               />
             </Link>
           </div>
 
           {/* RIGHT */}
-          <div className="flex items-center gap-8 flex-1 justify-end">
-            <LuSearch className="text-[16px] opacity-70 hover:opacity-100 transition-opacity" />
+          <div className="navbar-actions">
+            <LuSearch className="navbar-icon" />
             <CartButton quantity={totalQty} onClick={() => setCartOpen(true)} />
             <Link
               href="https://shopify.com/97401700734/account"
               aria-label="My account (Shopify)"
-              className="opacity-70 hover:opacity-100 transition-opacity"
+              className="navbar-icon"
             >
-              <VscAccount className="text-[16px]" />
+              <VscAccount className="navbar-icon" />
             </Link>
           </div>
         </nav>
@@ -157,7 +158,6 @@ export default function Navbar() {
         {dropdownOpen && (
           <div
             className="absolute left-0 right-0 bg-[#F6F7FB]/60 backdrop-blur-xl shadow-xl border-t-[0.5px] border-foreground/10 z-40"
-            data-dropdown-content
             onMouseEnter={() => {
               // Keep dropdown open when hovering over content
               // Clear any timeout that might close it
@@ -196,22 +196,22 @@ export default function Navbar() {
               }
             }}
           >
-            <div className="max-w-10xl mx-auto px-8 py-8">
-              <div className="grid grid-cols-2">
+            <div className="navbar-dropdown-content">
+              <div className="navbar-dropdown-grid">
                 {/* Left column - Customer Support */}
                 <div>
-                  <ul className="space-y-0">
+                  <ul className="navbar-dropdown-list">
                     {dropdownOpen.label === "More" && (
                       <>
                         <li>
-                          <div className="text-xs py-[2px] leading-tight font-medium text-foreground/60 uppercase mb-2">
+                          <div className="navbar-dropdown-heading">
                             Customer Support
                           </div>
                         </li>
                         <li>
                           <Link
                             href="/contact"
-                            className="block text-xs py-[2px] leading-tight hover:text-[#1c2de7] transition-colors"
+                            className="navbar-dropdown-link"
                             onClick={() => setDropdownOpen(null)}
                           >
                             Contact Us
@@ -220,7 +220,7 @@ export default function Navbar() {
                         <li>
                           <Link
                             href="/shipping"
-                            className="block text-xs py-[2px] leading-tight hover:text-[#1c2de7] transition-colors"
+                            className="navbar-dropdown-link"
                             onClick={() => setDropdownOpen(null)}
                           >
                             Shipping
@@ -229,7 +229,7 @@ export default function Navbar() {
                         <li>
                           <Link
                             href="/returns"
-                            className="block text-xs py-[2px] leading-tight hover:text-[#1c2de7] transition-colors"
+                            className="navbar-dropdown-link"
                             onClick={() => setDropdownOpen(null)}
                           >
                             Returns
@@ -242,7 +242,7 @@ export default function Navbar() {
                         <li key={index}>
                           <Link
                             href={item.href}
-                            className="block text-xs py-[2px] leading-tight hover:text-[#1c2de7] transition-colors"
+                            className="navbar-dropdown-link"
                             onClick={() => setDropdownOpen(null)}
                           >
                             {item.label}
@@ -255,18 +255,16 @@ export default function Navbar() {
                 {/* Right column - Links */}
                 {dropdownOpen.label === "More" && (
                   <div>
-                    <ul className="space-y-0">
+                    <ul className="navbar-dropdown-list">
                       <li>
-                        <div className="text-xs py-[2px] leading-tight font-medium text-foreground/60 uppercase mb-2">
-                          Links
-                        </div>
+                        <div className="navbar-dropdown-heading">Links</div>
                       </li>
                       <li>
                         <Link
                           href="https://www.instagram.com/rk2.archives/"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-xs py-[2px] leading-tight hover:text-[#1c2de7] transition-colors"
+                          className="navbar-dropdown-link"
                           onClick={() => setDropdownOpen(null)}
                         >
                           Instagram
@@ -277,7 +275,7 @@ export default function Navbar() {
                           href="https://youtube.com"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-xs py-[2px] leading-tight hover:text-[#1c2de7] transition-colors"
+                          className="navbar-dropdown-link"
                           onClick={() => setDropdownOpen(null)}
                         >
                           YouTube
@@ -288,7 +286,7 @@ export default function Navbar() {
                           href="https://tiktok.com"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block text-xs py-[2px] leading-tight hover:text-[#1c2de7] transition-colors"
+                          className="navbar-dropdown-link"
                           onClick={() => setDropdownOpen(null)}
                         >
                           TikTok
@@ -302,6 +300,140 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
+      {/* Mobile Menu */}
+      <div
+        className={`mobile-menu-backdrop ${menuOpen ? "" : "hidden"}`}
+        onClick={() => setMenuOpen(false)}
+      />
+      <aside className={`mobile-menu ${menuOpen ? "open" : "hidden"}`}>
+        <div className="mobile-menu-header">
+          <h2>Menu</h2>
+          <button
+            onClick={() => setMenuOpen(false)}
+            className="mobile-menu-close"
+            aria-label="Close menu"
+          >
+            <HiX />
+          </button>
+        </div>
+        <nav className="mobile-menu-content">
+          <ul className="mobile-menu-list">
+            <li>
+              <Link
+                href="/shop"
+                className="mobile-menu-link"
+                onClick={() => setMenuOpen(false)}
+              >
+                Shop all
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/about"
+                className="mobile-menu-link"
+                onClick={() => setMenuOpen(false)}
+              >
+                About us
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/collaborations"
+                className="mobile-menu-link"
+                onClick={() => setMenuOpen(false)}
+              >
+                Collaborations
+              </Link>
+            </li>
+            <li>
+              <button
+                className="mobile-menu-toggle"
+                onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
+              >
+                <span className="mobile-menu-link">More</span>
+                <span className={`mobile-menu-toggle-icon ${mobileMoreOpen ? "open" : ""}`}>
+                  {mobileMoreOpen ? "/" : "+"}
+                </span>
+              </button>
+              {mobileMoreOpen && (
+                <div className="mobile-menu-dropdown">
+                <div className="mobile-menu-dropdown-heading">
+                  Customer Support
+                </div>
+                <Link
+                  href="/contact"
+                  className="mobile-menu-dropdown-link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Contact Us
+                </Link>
+                <Link
+                  href="/shipping"
+                  className="mobile-menu-dropdown-link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Shipping
+                </Link>
+                <Link
+                  href="/returns"
+                  className="mobile-menu-dropdown-link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Returns
+                </Link>
+                <div className="mobile-menu-dropdown-heading">
+                  Links
+                </div>
+                <Link
+                  href="/about"
+                  className="mobile-menu-dropdown-link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link
+                  href="https://www.instagram.com/rk2.archives/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mobile-menu-dropdown-link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Instagram
+                </Link>
+                <Link
+                  href="https://youtube.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mobile-menu-dropdown-link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  YouTube
+                </Link>
+                <Link
+                  href="https://tiktok.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mobile-menu-dropdown-link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  TikTok
+                </Link>
+              </div>
+              )}
+            </li>
+          </ul>
+        </nav>
+        <div className="mobile-menu-footer">
+          <div className="mobile-menu-copyright">
+            <div>©2026</div>
+            <div>all rights reserved R/K2©.</div>
+          </div>
+          <div className="mobile-menu-credit">
+            by Sjonlee
+          </div>
+        </div>
+      </aside>
 
       <CartDrawer
         open={cartOpen}

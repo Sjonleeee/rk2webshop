@@ -17,28 +17,24 @@ export default function CartDrawer({ open, onClose, lines, subtotal }: Props) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/40 z-9998 transition-opacity duration-300 ${
-          open ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`cart-drawer-backdrop ${open ? "" : "hidden"}`}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <aside
-        className={`fixed right-0 top-0 h-screen w-full sm:w-[420px] bg-[#F6F7FB] z-9999 flex flex-col transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "translate-x-full pointer-events-none"
-        }`}
+        className={`cart-drawer ${open ? "open" : "hidden"}`}
       >
-        <div className="flex items-center justify-between px-6 py-5">
-          <h2 className="text-lg font-semibold">
+        <div className="cart-drawer-header">
+          <h2 className="cart-drawer-title">
             Your selection ({lines.length})
           </h2>
-          <button onClick={onClose}>
-            <HiX className="text-2xl" />
+          <button onClick={onClose} className="cart-drawer-close">
+            <HiX className="cart-drawer-close-icon" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+        <div className="cart-drawer-content">
           {lines.length === 0 ? (
             <CartEmptyState />
           ) : (
@@ -48,14 +44,14 @@ export default function CartDrawer({ open, onClose, lines, subtotal }: Props) {
           )}
         </div>
 
-        <div className="px-6 py-6 shadow-[0_-1px_6px_rgba(0,0,0,0.06)]">
-          <div className="flex justify-between font-medium mb-4">
+        <div className="cart-drawer-footer">
+          <div className="cart-drawer-subtotal">
             <span>Subtotal</span>
             <span>€ {subtotal}</span>
           </div>
 
           <button
-            className="w-full bg-black text-white py-4 disabled:opacity-40"
+            className="cart-drawer-checkout-button"
             disabled={lines.length === 0}
           >
             CHECK OUT

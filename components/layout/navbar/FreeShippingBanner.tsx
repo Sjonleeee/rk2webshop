@@ -2,7 +2,7 @@
 
 export default function FreeShippingBanner() {
   return (
-    <div className="w-full bg-[#F6F7FB]/60 backdrop-blur-xl shadow-sm text-[#2433C4] text-center py-2 text-[10px] tracking-wide">
+    <div className="free-shipping-banner">
       ABOVE 100 EURO FREE SHIPPING
     </div>
   );

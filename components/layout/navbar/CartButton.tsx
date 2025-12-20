@@ -7,14 +7,11 @@ interface Props {
 
 export default function CartButton({ quantity, onClick }: Props) {
   return (
-    <button
-      onClick={onClick}
-      className="relative  tracking-wide"
-    >
+    <button onClick={onClick} className="cart-button">
       <span id="cart-bag-target" className="relative inline-block">
         bag
         {quantity > 0 && (
-          <span className="absolute -top-1 -right-2 text-[10px] text-[#1c2de7]">
+          <span className="cart-button-badge">
             {quantity}
           </span>
         )}

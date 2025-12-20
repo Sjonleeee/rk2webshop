@@ -13,7 +13,6 @@ module.exports = {
         display: "var(--rk2-font-display)",
       },
       colors: {
-        /* Legacy keys (still used in components) */
         primary: "#262963",
         secondary: "#5D67B0",
         neutral: {
@@ -23,7 +22,6 @@ module.exports = {
         background: "#F6F7FB",
         foreground: "#191919",
 
-        /* New semantic palette driven by CSS variables */
         bg: {
           default: "hsl(var(--rk2-color-bg))",
           soft: "hsl(var(--rk2-color-primary-soft))",
