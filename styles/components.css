@@ -184,7 +184,6 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--rk2-space-md);
 }
 
 .mobile-menu-link {
@@ -192,7 +191,7 @@
   font-size: var(--rk2-text-md);
   color: hsl(var(--rk2-color-fg));
   text-decoration: none;
-  padding: var(--rk2-space-sm) 0;
+  padding: var(--rk2-space-xs) 0;
   transition: color 0.15s ease-in-out;
 }
 
@@ -209,7 +208,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: var(--rk2-space-sm) 0;
+  padding: var(--rk2-space-xs) 0;
 }
 
 .mobile-menu-toggle:hover .mobile-menu-link {
@@ -266,6 +265,99 @@
 .mobile-menu-credit {
   font-size: var(--rk2-text-xs);
   color: hsl(var(--rk2-color-fg) / 0.5);
+}
+
+/* =======================
+   R/K2 BRAND MARK "/"
+======================= */
+
+/* Active Navigation Indicator */
+.nav-link {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-link-active::before {
+  content: "/";
+  position: absolute;
+  left: -1rem;
+  font-weight: var(--rk2-font-weight-regular);
+  color: hsl(var(--rk2-color-fg));
+  opacity: 1;
+}
+
+.nav-link-hover::before {
+  content: "/";
+  position: absolute;
+  left: -1rem;
+  font-weight: var(--rk2-font-weight-regular);
+  color: hsl(var(--rk2-color-accent));
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.nav-link-hover:hover::before {
+  opacity: 1;
+}
+
+/* Dropdown Link Hover Effect */
+.navbar-dropdown-link {
+  position: relative;
+  display: inline-block;
+}
+
+.navbar-dropdown-link::before {
+  content: "/";
+  position: absolute;
+  left: -0.75rem;
+  font-weight: var(--rk2-font-weight-regular);
+  color: hsl(var(--rk2-color-accent));
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.navbar-dropdown-link:hover::before {
+  opacity: 1;
+}
+
+/* Loading State Brand Mark */
+.brand-mark-loading {
+  display: inline-block;
+  animation: brandMarkPulse 1s ease-in-out infinite;
+  font-weight: var(--rk2-font-weight-regular);
+}
+
+@keyframes brandMarkPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+}
+
+/* Success Feedback Brand Mark */
+.brand-mark-success {
+  display: inline-block;
+  animation: brandMarkSuccess 0.6s ease-out;
+  font-weight: var(--rk2-font-weight-regular);
+  color: hsl(var(--rk2-color-accent));
+}
+
+@keyframes brandMarkSuccess {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-45deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 .mobile-menu-dropdown-heading {

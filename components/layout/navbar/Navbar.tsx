@@ -322,7 +322,7 @@ export default function Navbar() {
             <li>
               <Link
                 href="/shop"
-                className="mobile-menu-link"
+                className={`mobile-menu-link ${pathname === "/shop" || pathname.startsWith("/product") ? "nav-link-active" : ""}`}
                 onClick={() => setMenuOpen(false)}
               >
                 Shop all
@@ -331,7 +331,7 @@ export default function Navbar() {
             <li>
               <Link
                 href="/about"
-                className="mobile-menu-link"
+                className={`mobile-menu-link ${pathname === "/about" ? "nav-link-active" : ""}`}
                 onClick={() => setMenuOpen(false)}
               >
                 About us
@@ -340,7 +340,7 @@ export default function Navbar() {
             <li>
               <Link
                 href="/collaborations"
-                className="mobile-menu-link"
+                className={`mobile-menu-link ${pathname === "/collaborations" ? "nav-link-active" : ""}`}
                 onClick={() => setMenuOpen(false)}
               >
                 Collaborations

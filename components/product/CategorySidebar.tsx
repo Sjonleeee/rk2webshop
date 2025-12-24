@@ -86,9 +86,9 @@ export default function CategorySidebar({
         <div className="hidden sm:flex flex-col gap-0 bg-white/70 backdrop-blur-sm p-2 rounded-md max-h-[calc(100vh-8rem)] overflow-y-auto">
           <button
             type="button"
-            className={`${verticalButtonClasses} ${
+            className={`category-sidebar-link ${verticalButtonClasses} ${
               !selectedCategory
-                ? ACTIVE_TEXT_COLOR
+                ? `category-sidebar-link-active ${ACTIVE_TEXT_COLOR}`
                 : `${DIM_TEXT_COLOR} ${HOVER_TEXT_COLOR}`
             }`}
             onMouseEnter={() => setHoveredCategory(null)}
@@ -102,9 +102,9 @@ export default function CategorySidebar({
             <button
               key={category}
               type="button"
-              className={`${verticalButtonClasses} ${
+              className={`category-sidebar-link ${verticalButtonClasses} ${
                 selectedCategory === category
-                  ? ACTIVE_TEXT_COLOR
+                  ? `category-sidebar-link-active ${ACTIVE_TEXT_COLOR}`
                   : `${DIM_TEXT_COLOR} ${HOVER_TEXT_COLOR}`
               }`}
               onMouseEnter={() => setHoveredCategory(category)}
