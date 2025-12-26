@@ -7,10 +7,7 @@
 /* Free Shipping Banner */
 .free-shipping-banner {
   width: 100%;
-  background-color: hsl(var(--rk2-color-primary-soft) / 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background-color: hsl(var(--rk2-color-primary-soft));
   color: hsl(var(--rk2-color-accent));
   text-align: center;
   padding: var(--rk2-space-sm) 0;
@@ -328,7 +325,8 @@
 }
 
 @keyframes brandMarkPulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }

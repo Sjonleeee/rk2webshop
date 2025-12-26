@@ -4,7 +4,7 @@
 :root {
   /* R/K2 brand tokens (HSL) */
   --rk2-color-primary: 244 44% 26%; /* #262963 */
-  --rk2-color-primary-soft: 234 59% 95%; /* ~#F6F7FB */
+  --rk2-color-primary-soft: 234 100% 99%; /* ~#F6F7FB */
   --rk2-color-accent: 234 70% 46%; /* ~#2433C4 / #1c2de7 */
 
   /* Neutrals */

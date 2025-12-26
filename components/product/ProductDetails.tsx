@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useCart } from "@/components/providers/CartContext";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 
@@ -16,7 +16,7 @@ interface ProductImage {
 
 interface ProductVariant {
   id: string;
-  title: string; // XS | S | M | L | XL OR One Size
+  title: string;
   quantityAvailable: number;
 }
 
@@ -52,11 +52,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const images = product.images.edges.map((e) => e.node);
   const price = product.priceRange.minVariantPrice;
 
-  const isOneSize = variants.length === 1;
+  /* image refs */
+  const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  /* ----------------------------------------------------------------
-   * Cart-aware stock
-   * ---------------------------------------------------------------*/
+  /* cart-aware stock */
   const quantitiesInCart = useMemo<Record<string, number>>(() => {
     if (!cart?.lines?.edges) return {};
     return cart.lines.edges.reduce((acc, line) => {
@@ -66,19 +65,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     }, {} as Record<string, number>);
   }, [cart]);
 
-  const getAvailableStock = (variant: ProductVariant) =>
-    Math.max(
-      0,
-      variant.quantityAvailable - (quantitiesInCart[variant.id] || 0)
-    );
+  const getAvailableStock = (v: ProductVariant) =>
+    Math.max(0, v.quantityAvailable - (quantitiesInCart[v.id] || 0));
 
-  const isOutOfStock = variants.every(
-    (variant) => variant.quantityAvailable === 0
-  );
+  const isOutOfStock = variants.every((v) => v.quantityAvailable === 0);
 
-  /* ----------------------------------------------------------------
-   * Selected variant
-   * ---------------------------------------------------------------*/
   const firstAvailableVariantId =
     variants.find((v) => getAvailableStock(v) > 0)?.id ?? null;
 
@@ -86,155 +77,169 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     firstAvailableVariantId
   );
 
-  const selectedVariantHasStock =
-    selectedVariantId &&
-    getAvailableStock(variants.find((v) => v.id === selectedVariantId)!) > 0;
-
-  /* ----------------------------------------------------------------
-   * Render
-   * ---------------------------------------------------------------*/
   return (
-    <section className="max-w-[1600px] mx-auto px-12 py-16">
-      <div className="grid grid-cols-12 gap-12">
-        {/* LEFT — STICKY INFO */}
-        <aside className="col-span-5">
-          <div className="sticky top-24 flex flex-col justify-between">
-            <div>
-              {/* Breadcrumb */}
-              <nav
-                aria-label="Breadcrumb"
-                className="text-xs text-neutral-500 mb-6"
-              >
-                <ol className="flex gap-1">
-                  <li></li>
-                  <li>
-                    <Link
-                      href="/shop"
-                      className="transition hover:text-[hsl(var(--rk2-color-accent))]"
-                    >
-                      Products
-                    </Link>
-                  </li>
-                  <li>/</li>
-                  <li className="text-[hsl(var(--rk2-color-accent))] cursor-default">
-                    {product.title}
-                  </li>
-                </ol>
+    <section className="relative w-full">
+      <div className="grid grid-cols-12 px-10">
+        {/* LEFT — DETAILS */}
+        <aside className="col-span-3 pr-10">
+          <div className="sticky top-24 h-[calc(100vh-6rem)] flex items-end pb-20 text-[11px] text-neutral-500">
+            <div className="relative max-w-[300px]">
+              {/* BREADCRUMB — REFERENCE STYLE */}
+              <nav className="absolute -top-70 left-0 text-[10px] tracking-wide text-neutral-400">
+                <Link
+                  href="/shop"
+                  className="transition hover:text-[hsl(var(--rk2-color-accent))]"
+                >
+                  Products
+                </Link>
+                <span className="mx-1">/</span>
+                <span className="text-[hsl(var(--rk2-color-accent))]">
+                  {product.title}
+                </span>
               </nav>
 
-              {/* Meta */}
-              <div className="text-sm text-neutral-600 space-y-1 mb-6">
-                <p>No. {product.id.slice(-8)}</p>
-                <p>Style {product.title}</p>
-              </div>
+              {/* CONTENT */}
+              <div className="space-y-9 pt-2">
+                <div>
+                  <p className="uppercase mb-1">Composition</p>
+                  <p>{product.description || "—"}</p>
+                </div>
 
-              {/* Price */}
-              <p className="text-xl mb-10">
-                {price.currencyCode} {price.amount}
-              </p>
+                <div>
+                  <p className="uppercase mb-1">Care</p>
+                  <p>Wash cold. Do not tumble dry.</p>
+                </div>
 
-              {/* Sizes */}
-              <div className="mb-10">
-                <p className="text-xs uppercase tracking-wide mb-3">Sizes</p>
-
-                <div className="flex gap-4">
-                  {isOneSize ? (
-                    <button
-                      disabled={getAvailableStock(variants[0]) === 0}
-                      className={`
-                        text-sm pb-1 border-b
-                        border-[hsl(var(--rk2-color-accent))]
-                        text-[hsl(var(--rk2-color-accent))]
-                        ${
-                          getAvailableStock(variants[0]) === 0 &&
-                          "opacity-30 cursor-not-allowed"
-                        }
-                      `}
-                    >
-                      ONE SIZE
-                    </button>
-                  ) : (
-                    variants.map((variant) => {
-                      const available = getAvailableStock(variant) > 0;
-                      const selected = selectedVariantId === variant.id;
-
-                      const base = "text-sm pb-1 border-b transition-colors";
-                      const state = selected
-                        ? "border-[hsl(var(--rk2-color-accent))] text-[hsl(var(--rk2-color-accent))]"
-                        : "border-transparent text-neutral-500";
-                      const interaction = available
-                        ? "hover:text-[hsl(var(--rk2-color-accent))] hover:border-[hsl(var(--rk2-color-accent))]"
-                        : "opacity-30 cursor-not-allowed";
-
-                      return (
-                        <button
-                          key={variant.id}
-                          disabled={!available}
-                          onClick={() =>
-                            available && setSelectedVariantId(variant.id)
-                          }
-                          className={`${base} ${state} ${interaction}`}
-                        >
-                          {variant.title}
-                        </button>
-                      );
-                    })
-                  )}
+                <div>
+                  <p className="uppercase mb-1">Origin</p>
+                  <p>Designed in Belgium.</p>
                 </div>
               </div>
-
-              {/* CTA */}
-              {isOutOfStock ? (
-                <button
-                  disabled
-                  className="w-full border border-neutral-300 py-3 text-sm text-neutral-400 cursor-not-allowed"
-                >
-                  / Out of stock
-                </button>
-              ) : (
-                <AddToCartButton
-                  variantId={selectedVariantId}
-                  disabled={!selectedVariantId || !selectedVariantHasStock}
-                />
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="mt-16 space-y-4 text-sm text-neutral-600">
-              <details>
-                <summary className="cursor-pointer">Overview</summary>
-                <p className="mt-2 max-w-md">
-                  {product.description || "No description available"}
-                </p>
-              </details>
-
-              <details>
-                <summary className="cursor-pointer">Details</summary>
-                <p className="mt-2">Materials & construction.</p>
-              </details>
-
-              <details>
-                <summary className="cursor-pointer">Shipping</summary>
-                <p className="mt-2">Calculated at checkout.</p>
-              </details>
             </div>
           </div>
         </aside>
 
-        {/* RIGHT — SCROLLABLE IMAGES */}
-        <div className="col-span-7 flex flex-col gap-24">
+        {/* CENTER — FULLSCREEN IMAGES */}
+        <div className="col-span-6">
           {images.map((img, index) => (
-            <Image
+            <div
               key={img.url}
-              src={img.url}
-              alt={img.altText || product.title}
-              width={1200}
-              height={1600}
-              priority={index === 0}
-              className="w-full h-auto object-contain"
-            />
+              ref={(el) => {
+                imageRefs.current[index] = el;
+              }}
+              className="h-screen flex items-center justify-center"
+            >
+              <div className="relative w-full h-full">
+                <Image
+                  src={img.url}
+                  alt={img.altText || product.title}
+                  fill
+                  priority={index === 0}
+                  className="object-contain"
+                />
+              </div>
+            </div>
           ))}
         </div>
+
+        {/* RIGHT — STICKY PRODUCT COLUMN */}
+        <aside className="col-span-3 relative">
+          <div className="sticky top-24 h-[calc(100vh-6rem)] flex flex-col justify-between py-20">
+            {/* THUMBNAILS */}
+            <div className="flex flex-col gap-3">
+              {images.map((img, index) => (
+                <button
+                  key={img.url}
+                  onClick={() =>
+                    imageRefs.current[index]?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    })
+                  }
+                  className="w-9 aspect-3/4"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={img.url}
+                      alt=""
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* PRODUCT INFO */}
+            <div className="text-sm max-w-[260px] space-y-4">
+              <div className="space-y-1">
+                <h1 className="font-medium">{product.title}</h1>
+                <p className="text-xs text-neutral-500">
+                  No. {product.id.slice(-8)}
+                </p>
+              </div>
+
+              <div className="h-px bg-neutral-300" />
+
+              <p>
+                {price.currencyCode} {price.amount}
+              </p>
+
+              <div className="h-px bg-neutral-300" />
+
+              <div className="flex gap-3">
+                {variants.map((variant) => {
+                  const available = getAvailableStock(variant) > 0;
+                  const selected = selectedVariantId === variant.id;
+
+                  return (
+                    <button
+                      key={variant.id}
+                      disabled={!available}
+                      onClick={() =>
+                        available && setSelectedVariantId(variant.id)
+                      }
+                      className={`
+                        text-xs pb-1 border-b transition
+                        ${
+                          selected
+                            ? "border-[hsl(var(--rk2-color-accent))] text-[hsl(var(--rk2-color-accent))]"
+                            : "border-transparent text-neutral-400 hover:text-[hsl(var(--rk2-color-accent))]"
+                        }
+                        ${!available && "opacity-30 cursor-not-allowed"}
+                      `}
+                    >
+                      {variant.title}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="h-px bg-neutral-300" />
+
+              {isOutOfStock ? (
+                <button
+                  disabled
+                  className="w-full border border-neutral-300 py-3 text-xs text-neutral-400"
+                >
+                  Out of stock
+                </button>
+              ) : (
+                <AddToCartButton
+                  variantId={selectedVariantId}
+                  disabled={!selectedVariantId}
+                />
+              )}
+
+              <p className="text-[10px] text-neutral-400">
+                Delivery, exchanges and returns
+              </p>
+            </div>
+          </div>
+
+          {/* FULL HEIGHT DIVIDER */}
+          <div className="absolute left-[-10px] top-0 h-full w-px bg-neutral-300" />
+        </aside>
       </div>
     </section>
   );

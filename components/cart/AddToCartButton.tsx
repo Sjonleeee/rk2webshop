@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useCart } from "@/components/providers/CartContext";
 
 interface AddToCartButtonProps {
-    variantId: string | null;
+  variantId: string | null;
   disabled?: boolean;
   className?: string;
 }
@@ -69,10 +69,10 @@ export default function AddToCartButton({
             const translateY = endY - startY;
 
             // Ultra-smooth easing: refined ease-out curve for cleaner movement
-          dot.style.transition =
+            dot.style.transition =
               "transform 600ms cubic-bezier(0.25, 0.1, 0.25, 1), opacity 600ms cubic-bezier(0.4, 0, 0.2, 1)";
             dot.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(0.2)`;
-          dot.style.opacity = "0";
+            dot.style.opacity = "0";
           });
         });
 
@@ -108,36 +108,36 @@ export default function AddToCartButton({
 
   return (
     <div className="w-full">
-    <button
-      ref={buttonRef}
+      <button
+        ref={buttonRef}
         onClick={handleAddToCart}
         disabled={isDisabled}
-      className={`w-full font-bold py-3 rounded-lg mt-8 transition ${
+        className={`w-full font-bold py-3 rounded-lg mt-8 transition ${
           isDisabled
-          ? "bg-white/40 text-gray-400 cursor-not-allowed border border-gray-200 backdrop-blur-md shadow-inner"
+            ? "bg-white/40 text-gray-400 cursor-not-allowed border border-gray-200 backdrop-blur-md shadow-inner"
             : "bg-black text-white hover:bg-gray-800 active:scale-[0.98]"
         } ${className}`}
-      type="button"
-      style={
+        type="button"
+        style={
           isDisabled && !isLoading
-          ? { WebkitBackdropFilter: "blur(8px)", backdropFilter: "blur(8px)" }
-          : {}
-      }
-    >
+            ? { WebkitBackdropFilter: "blur(8px)", backdropFilter: "blur(8px)" }
+            : {}
+        }
+      >
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">
             <span className="brand-mark-loading">/</span>
-            <span>Adding...</span>
+            <span>/ Adding...</span>
           </span>
         ) : showSuccess ? (
           <span className="flex items-center justify-center gap-2">
             <span className="brand-mark-success">/</span>
-            <span>Added</span>
+            <span>/ Added</span>
           </span>
         ) : (
           "Add to Cart"
         )}
-    </button>
+      </button>
       {error && (
         <p className="mt-2 text-sm text-red-600 text-center">{error}</p>
       )}
