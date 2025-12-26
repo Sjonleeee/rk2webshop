@@ -52,10 +52,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const images = product.images.edges.map((e) => e.node);
   const price = product.priceRange.minVariantPrice;
 
-  /* image refs */
   const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  /* cart-aware stock */
+  /* Cart-aware stock */
   const quantitiesInCart = useMemo<Record<string, number>>(() => {
     if (!cart?.lines?.edges) return {};
     return cart.lines.edges.reduce((acc, line) => {
@@ -77,43 +76,43 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     firstAvailableVariantId
   );
 
+  /* ------------------------------------------------------------------
+   * Render
+   * -----------------------------------------------------------------*/
   return (
     <section className="relative w-full">
       <div className="grid grid-cols-12 px-10">
-        {/* LEFT — DETAILS */}
-        <aside className="col-span-3 pr-10">
-          <div className="sticky top-24 h-[calc(100vh-6rem)] flex items-end pb-20 text-[11px] text-neutral-500">
-            <div className="relative max-w-[300px]">
-              {/* BREADCRUMB — REFERENCE STYLE */}
-              <nav className="absolute -top-70 left-0 text-[10px] tracking-wide text-neutral-400">
-                <Link
-                  href="/shop"
-                  className="transition hover:text-[hsl(var(--rk2-color-accent))]"
-                >
-                  Products
-                </Link>
-                <span className="mx-1">/</span>
-                <span className="text-[hsl(var(--rk2-color-accent))]">
-                  {product.title}
-                </span>
-              </nav>
+        {/* LEFT COLUMN */}
+        <aside className="col-span-3 relative pr-10">
+          <nav className="fixed top-30 left-10 z-40 text-[10px] tracking-wide text-neutral-400">
+            <Link
+              href="/shop"
+              className="transition hover:text-[hsl(var(--rk2-color-accent))]"
+            >
+              Products
+            </Link>
+            <span className="mx-1">/</span>
+            <span className="text-[hsl(var(--rk2-color-accent))]">
+              {product.title}
+            </span>
+          </nav>
 
-              {/* CONTENT */}
-              <div className="space-y-9 pt-2">
-                <div>
-                  <p className="uppercase mb-1">Composition</p>
-                  <p>{product.description || "—"}</p>
-                </div>
+          {/* CONTENT — STICKY BOTTOM */}
+          <div className="fixed top-24 h-[calc(100vh-6rem)] flex items-end pb-20 text-[11px] text-neutral-500">
+            <div className="space-y-8 max-w-[300px]">
+              <div>
+                <p className="uppercase mb-1">Composition</p>
+                <p>{product.description || "—"}</p>
+              </div>
 
-                <div>
-                  <p className="uppercase mb-1">Care</p>
-                  <p>Wash cold. Do not tumble dry.</p>
-                </div>
+              <div>
+                <p className="uppercase mb-1">Care</p>
+                <p>Wash cold. Do not tumble dry.</p>
+              </div>
 
-                <div>
-                  <p className="uppercase mb-1">Origin</p>
-                  <p>Designed in Belgium.</p>
-                </div>
+              <div>
+                <p className="uppercase mb-1">Origin</p>
+                <p>Designed in Belgium.</p>
               </div>
             </div>
           </div>
@@ -142,9 +141,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           ))}
         </div>
 
-        {/* RIGHT — STICKY PRODUCT COLUMN */}
+        {/* RIGHT COLUMN */}
         <aside className="col-span-3 relative">
-          <div className="sticky top-24 h-[calc(100vh-6rem)] flex flex-col justify-between py-20">
+          <div className="fixed top-24 h-[calc(100vh-6rem)] flex flex-col justify-between py-20">
             {/* THUMBNAILS */}
             <div className="flex flex-col gap-3">
               {images.map((img, index) => (
@@ -170,7 +169,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               ))}
             </div>
 
-            {/* PRODUCT INFO */}
+            {/* PRODUCT INFO — BOXED LIKE REFERENCE */}
             <div className="text-sm max-w-[260px] space-y-4">
               <div className="space-y-1">
                 <h1 className="font-medium">{product.title}</h1>
