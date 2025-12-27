@@ -53,6 +53,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const price = product.priceRange.minVariantPrice;
 
   const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
+
+  /* 🔹 mobile carousel progress */
+  const [activeIndex, setActiveIndex] = useState(0);
 
   /* Cart-aware stock */
   const quantitiesInCart = useMemo<Record<string, number>>(() => {
@@ -67,7 +71,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const getAvailableStock = (v: ProductVariant) =>
     Math.max(0, v.quantityAvailable - (quantitiesInCart[v.id] || 0));
 
-  const isOutOfStock = variants.every((v) => v.quantityAvailable === 0);
+  const isOutOfStock = variants.every((v) => getAvailableStock(v) === 0);
 
   const firstAvailableVariantId =
     variants.find((v) => getAvailableStock(v) > 0)?.id ?? null;
@@ -77,39 +81,50 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   );
 
   /* ------------------------------------------------------------------
+   * Handlers
+   * -----------------------------------------------------------------*/
+  const handleMobileScroll = () => {
+    if (!mobileCarouselRef.current) return;
+    const { scrollLeft, clientWidth } = mobileCarouselRef.current;
+    const index = Math.round(scrollLeft / clientWidth);
+    setActiveIndex(index);
+  };
+
+  /* ------------------------------------------------------------------
    * Render
    * -----------------------------------------------------------------*/
   return (
     <section className="relative w-full">
-      <div className="grid grid-cols-12 px-10">
-        {/* LEFT COLUMN */}
-        <aside className="col-span-3 relative pr-10">
+      {/* MOBILE NAV */}
+      <nav className="md:hidden px-6 pt-4 text-[10px] tracking-wide text-neutral-400">
+        <Link href="/shop">Products</Link>
+        <span className="mx-1">/</span>
+        <span className="text-[hsl(var(--rk2-color-accent))]">
+          {product.title}
+        </span>
+      </nav>
+
+      <div className="grid grid-cols-1 md:grid-cols-12 px-6 md:px-10">
+        {/* LEFT COLUMN — DESKTOP ONLY */}
+        <aside className="hidden md:block col-span-3 relative pr-10">
           <nav className="fixed top-30 left-10 z-40 text-[10px] tracking-wide text-neutral-400">
-            <Link
-              href="/shop"
-              className="transition hover:text-[hsl(var(--rk2-color-accent))]"
-            >
-              Products
-            </Link>
+            <Link href="/shop">Products</Link>
             <span className="mx-1">/</span>
             <span className="text-[hsl(var(--rk2-color-accent))]">
               {product.title}
             </span>
           </nav>
 
-          {/* CONTENT — STICKY BOTTOM */}
           <div className="fixed top-24 h-[calc(100vh-6rem)] flex items-end pb-20 text-[11px] text-neutral-500">
             <div className="space-y-8 max-w-[300px]">
               <div>
                 <p className="uppercase mb-1">Composition</p>
                 <p>{product.description || "—"}</p>
               </div>
-
               <div>
                 <p className="uppercase mb-1">Care</p>
                 <p>Wash cold. Do not tumble dry.</p>
               </div>
-
               <div>
                 <p className="uppercase mb-1">Origin</p>
                 <p>Designed in Belgium.</p>
@@ -118,34 +133,71 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           </div>
         </aside>
 
-        {/* CENTER — FULLSCREEN IMAGES */}
-        <div className="col-span-6">
-          {images.map((img, index) => (
-            <div
-              key={img.url}
-              ref={(el) => {
-                imageRefs.current[index] = el;
-              }}
-              className="h-screen flex items-center justify-center"
-            >
-              <div className="relative w-full h-full">
+        {/* CENTER — IMAGES */}
+        <div className="md:col-span-6">
+          {/* MOBILE CAROUSEL */}
+          <div
+            ref={mobileCarouselRef}
+            onScroll={handleMobileScroll}
+            className="md:hidden flex overflow-x-auto snap-x snap-mandatory scrollbar-none"
+          >
+            {images.map((img) => (
+              <div
+                key={img.url}
+                className="relative min-w-full aspect-3/4 snap-center"
+              >
                 <Image
                   src={img.url}
                   alt={img.altText || product.title}
                   fill
-                  priority={index === 0}
                   className="object-contain"
+                  priority
                 />
               </div>
+            ))}
+          </div>
+
+          {/* 🔹 MOBILE PROGRESS BAR */}
+          <div className="md:hidden mt-2 px-6">
+            <div className="relative h-px bg-neutral-300">
+              <div
+                className="absolute top-0 left-0 h-px bg-[hsl(var(--rk2-color-primary))] transition-all duration-300"
+                style={{
+                  width: `${((activeIndex + 1) / images.length) * 100}%`,
+                }}
+              />
             </div>
-          ))}
+          </div>
+
+          {/* DESKTOP IMAGES — UNCHANGED */}
+          <div className="hidden md:block">
+            {images.map((img, index) => (
+              <div
+                key={img.url}
+                ref={(el) => {
+                  imageRefs.current[index] = el;
+                }}
+                className="h-screen flex items-center justify-center"
+              >
+                <div className="relative w-full h-full">
+                  <Image
+                    src={img.url}
+                    alt={img.altText || product.title}
+                    fill
+                    priority={index === 0}
+                    className="object-contain"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* RIGHT COLUMN */}
-        <aside className="col-span-3 relative">
-          <div className="fixed top-24 h-[calc(100vh-6rem)] flex flex-col justify-between py-20">
-            {/* THUMBNAILS */}
-            <div className="flex flex-col gap-3">
+        <aside className="md:col-span-3 relative">
+          <div className="md:fixed md:top-24 md:h-[calc(100vh-6rem)] flex flex-col gap-8 md:justify-between py-10 md:py-15 md:pl-9">
+            {/* THUMBNAILS — DESKTOP ONLY */}
+            <div className="hidden md:flex flex-col gap-3">
               {images.map((img, index) => (
                 <button
                   key={img.url}
@@ -155,7 +207,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                       block: "center",
                     })
                   }
-                  className="w-9 aspect-3/4"
+                  className="w-8 aspect-3/4"
                 >
                   <div className="relative w-full h-full">
                     <Image
@@ -169,8 +221,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               ))}
             </div>
 
-            {/* PRODUCT INFO — BOXED LIKE REFERENCE */}
-            <div className="text-sm max-w-[260px] space-y-4">
+            {/* PRODUCT INFO */}
+            <div className="text-sm w-full max-w-none md:max-w-[260px] space-y-3">
               <div className="space-y-1">
                 <h1 className="font-medium">{product.title}</h1>
                 <p className="text-xs text-neutral-500">
@@ -203,7 +255,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                         ${
                           selected
                             ? "border-[hsl(var(--rk2-color-accent))] text-[hsl(var(--rk2-color-accent))]"
-                            : "border-transparent text-neutral-400 hover:text-[hsl(var(--rk2-color-accent))]"
+                            : "border-transparent text-neutral-400"
                         }
                         ${!available && "opacity-30 cursor-not-allowed"}
                       `}
@@ -226,18 +278,80 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               ) : (
                 <AddToCartButton
                   variantId={selectedVariantId}
-                  disabled={!selectedVariantId}
+                  disabled={
+                    !selectedVariantId ||
+                    !variants.find(
+                      (v) =>
+                        v.id === selectedVariantId && getAvailableStock(v) > 0
+                    )
+                  }
                 />
               )}
 
               <p className="text-[10px] text-neutral-400">
                 Delivery, exchanges and returns
               </p>
+
+              {/* MOBILE DETAILS */}
+              <div className="md:hidden border-t border-neutral-200 text-[11px] text-neutral-500">
+                <details className="group border-b border-neutral-200">
+                  <summary className="flex items-center justify-between py-4 cursor-pointer list-none">
+                    <span className="uppercase">Details</span>
+
+                    <span className="relative w-3 h-3 flex items-center justify-center text-xs">
+                      <span className="group-open:hidden">+</span>
+                      <span className="hidden group-open:inline text-[hsl(var(--rk2-color-accent))] opacity-70">
+                        /
+                      </span>
+                    </span>
+                  </summary>
+
+                  <div className="pb-4 pr-6">
+                    <p>{product.description || "—"}</p>
+                  </div>
+                </details>
+
+                <details className="group border-b border-neutral-200">
+                  <summary className="flex items-center justify-between py-4 cursor-pointer list-none">
+                    <span className="uppercase">Care</span>
+                    <span className="relative w-3 h-3 flex items-center justify-center text-xs">
+                      {/* plus (default) */}
+                      <span className="group-open:hidden">+</span>
+
+                      {/* slash (open state) */}
+                      <span className="hidden group-open:inline text-[hsl(var(--rk2-color-accent))] opacity-70">
+                        /
+                      </span>
+                    </span>
+                  </summary>
+                  <div className="pb-4 pr-6">
+                    <p>Wash cold. Do not tumble dry.</p>
+                  </div>
+                </details>
+
+                <details className="group border-b border-neutral-200">
+                  <summary className="flex items-center justify-between py-4 cursor-pointer list-none">
+                    <span className="uppercase">Origin</span>
+                    <span className="relative w-3 h-3 flex items-center justify-center text-xs">
+                      {/* plus (default) */}
+                      <span className="group-open:hidden">+</span>
+
+                      {/* slash (open state) */}
+                      <span className="hidden group-open:inline text-[hsl(var(--rk2-color-accent))] opacity-70">
+                        /
+                      </span>
+                    </span>
+                  </summary>
+                  <div className="pb-4 pr-6">
+                    <p>Designed in Belgium.</p>
+                  </div>
+                </details>
+              </div>
             </div>
           </div>
 
-          {/* FULL HEIGHT DIVIDER */}
-          <div className="absolute left-[-10px] top-0 h-full w-px bg-neutral-300" />
+          {/* DIVIDER — DESKTOP ONLY */}
+          <div className="hidden md:block absolute left-[-10px] top-0 h-full w-px bg-neutral-300" />
         </aside>
       </div>
     </section>

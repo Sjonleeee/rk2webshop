@@ -127,12 +127,11 @@ export default function AddToCartButton({
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">
             <span className="brand-mark-loading">/</span>
-            <span>/ Adding...</span>
+            <span>Adding...</span>
           </span>
         ) : showSuccess ? (
           <span className="flex items-center justify-center gap-2">
-            <span className="brand-mark-success">/</span>
-            <span>/ Added</span>
+            <span>Added</span>
           </span>
         ) : (
           "Add to Cart"
