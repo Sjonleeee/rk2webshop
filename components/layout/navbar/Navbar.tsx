@@ -322,7 +322,7 @@ export default function Navbar() {
             <li>
               <Link
                 href="/shop"
-                className={`mobile-menu-link ${pathname === "/shop" || pathname.startsWith("/product") ? "nav-link-active" : ""}`}
+                className="mobile-menu-link"
                 onClick={() => setMenuOpen(false)}
               >
                 Shop all
@@ -331,7 +331,7 @@ export default function Navbar() {
             <li>
               <Link
                 href="/about"
-                className={`mobile-menu-link ${pathname === "/about" ? "nav-link-active" : ""}`}
+                className="mobile-menu-link"
                 onClick={() => setMenuOpen(false)}
               >
                 About us
@@ -340,7 +340,7 @@ export default function Navbar() {
             <li>
               <Link
                 href="/collaborations"
-                className={`mobile-menu-link ${pathname === "/collaborations" ? "nav-link-active" : ""}`}
+                className="mobile-menu-link"
                 onClick={() => setMenuOpen(false)}
               >
                 Collaborations
@@ -352,74 +352,76 @@ export default function Navbar() {
                 onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
               >
                 <span className="mobile-menu-link">More</span>
-                <span className={`mobile-menu-toggle-icon ${mobileMoreOpen ? "open" : ""}`}>
+                <span
+                  className={`mobile-menu-toggle-icon ${
+                    mobileMoreOpen ? "open" : ""
+                  }`}
+                >
                   {mobileMoreOpen ? "/" : "+"}
                 </span>
               </button>
               {mobileMoreOpen && (
                 <div className="mobile-menu-dropdown">
-                <div className="mobile-menu-dropdown-heading">
-                  Customer Support
+                  <div className="mobile-menu-dropdown-heading">
+                    Customer Support
+                  </div>
+                  <Link
+                    href="/contact"
+                    className="mobile-menu-dropdown-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Contact Us
+                  </Link>
+                  <Link
+                    href="/shipping"
+                    className="mobile-menu-dropdown-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Shipping
+                  </Link>
+                  <Link
+                    href="/returns"
+                    className="mobile-menu-dropdown-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Returns
+                  </Link>
+                  <div className="mobile-menu-dropdown-heading">Links</div>
+                  <Link
+                    href="/about"
+                    className="mobile-menu-dropdown-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    About
+                  </Link>
+                  <Link
+                    href="https://www.instagram.com/rk2.archives/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mobile-menu-dropdown-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Instagram
+                  </Link>
+                  <Link
+                    href="https://youtube.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mobile-menu-dropdown-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    YouTube
+                  </Link>
+                  <Link
+                    href="https://tiktok.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mobile-menu-dropdown-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    TikTok
+                  </Link>
                 </div>
-                <Link
-                  href="/contact"
-                  className="mobile-menu-dropdown-link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Contact Us
-                </Link>
-                <Link
-                  href="/shipping"
-                  className="mobile-menu-dropdown-link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Shipping
-                </Link>
-                <Link
-                  href="/returns"
-                  className="mobile-menu-dropdown-link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Returns
-                </Link>
-                <div className="mobile-menu-dropdown-heading">
-                  Links
-                </div>
-                <Link
-                  href="/about"
-                  className="mobile-menu-dropdown-link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  About
-                </Link>
-                <Link
-                  href="https://www.instagram.com/rk2.archives/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mobile-menu-dropdown-link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Instagram
-                </Link>
-                <Link
-                  href="https://youtube.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mobile-menu-dropdown-link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  YouTube
-                </Link>
-                <Link
-                  href="https://tiktok.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mobile-menu-dropdown-link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  TikTok
-                </Link>
-              </div>
               )}
             </li>
           </ul>
@@ -429,9 +431,7 @@ export default function Navbar() {
             <div>©2026</div>
             <div>all rights reserved R/K2©.</div>
           </div>
-          <div className="mobile-menu-credit">
-            by Sjonlee
-          </div>
+          <div className="mobile-menu-credit">by Sjonlee</div>
         </div>
       </aside>
 

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { useCart } from "@/components/providers/CartContext";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 
@@ -55,6 +55,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
   const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
 
+  /* 🔹 desktop scroll refs */
+  const desktopImagesWrapperRef = useRef<HTMLDivElement | null>(null);
+  const desktopProgressRef = useRef<HTMLDivElement | null>(null);
+
   /* 🔹 mobile carousel progress */
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -81,7 +85,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   );
 
   /* ------------------------------------------------------------------
-   * Handlers
+   * Scroll handlers
    * -----------------------------------------------------------------*/
   const handleMobileScroll = () => {
     if (!mobileCarouselRef.current) return;
@@ -89,6 +93,25 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     const index = Math.round(scrollLeft / clientWidth);
     setActiveIndex(index);
   };
+
+  const handleDesktopScroll = () => {
+    if (!desktopImagesWrapperRef.current || !desktopProgressRef.current) return;
+
+    const rect = desktopImagesWrapperRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const totalScrollable = rect.height - viewportHeight;
+
+    const scrolled = Math.min(Math.max(-rect.top, 0), totalScrollable);
+    const progress = totalScrollable > 0 ? scrolled / totalScrollable : 0;
+
+    desktopProgressRef.current.style.height = `${progress * 100}%`;
+  };
+
+  useEffect(() => {
+    handleDesktopScroll();
+    window.addEventListener("scroll", handleDesktopScroll);
+    return () => window.removeEventListener("scroll", handleDesktopScroll);
+  }, []);
 
   /* ------------------------------------------------------------------
    * Render
@@ -105,7 +128,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       </nav>
 
       <div className="grid grid-cols-1 md:grid-cols-12 px-6 md:px-10">
-        {/* LEFT COLUMN — DESKTOP ONLY */}
+        {/* LEFT COLUMN */}
         <aside className="hidden md:block col-span-3 relative pr-10">
           <nav className="fixed top-30 left-10 z-40 text-[10px] tracking-wide text-neutral-400">
             <Link href="/shop">Products</Link>
@@ -135,7 +158,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
         {/* CENTER — IMAGES */}
         <div className="md:col-span-6">
-          {/* MOBILE CAROUSEL */}
+          {/* MOBILE */}
           <div
             ref={mobileCarouselRef}
             onScroll={handleMobileScroll}
@@ -157,7 +180,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             ))}
           </div>
 
-          {/* 🔹 MOBILE PROGRESS BAR */}
+          {/* MOBILE PROGRESS */}
           <div className="md:hidden mt-2 px-6">
             <div className="relative h-px bg-neutral-300">
               <div
@@ -169,8 +192,20 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </div>
           </div>
 
-          {/* DESKTOP IMAGES — UNCHANGED */}
-          <div className="hidden md:block">
+          {/* DESKTOP IMAGES + DIVIDER */}
+          <div
+            ref={desktopImagesWrapperRef}
+            className="hidden md:block relative"
+          >
+            {/* VERTICAL DIVIDER (CLIPPED TO IMAGES) */}
+            <div className="absolute top-0 right-[-10px] h-full w-px bg-neutral-300">
+              <div
+                ref={desktopProgressRef}
+                className="absolute top-0 left-0 w-px bg-[hsl(var(--rk2-color-primary))]"
+                style={{ height: "0%" }}
+              />
+            </div>
+
             {images.map((img, index) => (
               <div
                 key={img.url}
@@ -195,8 +230,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
         {/* RIGHT COLUMN */}
         <aside className="md:col-span-3 relative">
-          <div className="md:fixed md:top-24 md:h-[calc(100vh-6rem)] flex flex-col gap-8 md:justify-between py-10 md:py-15 md:pl-9">
-            {/* THUMBNAILS — DESKTOP ONLY */}
+          <div className="md:sticky md:top-24 flex flex-col gap-8 justify-between py-10 pl-9">
+            {/* THUMBNAILS */}
             <div className="hidden md:flex flex-col gap-3">
               {images.map((img, index) => (
                 <button
@@ -222,20 +257,16 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </div>
 
             {/* PRODUCT INFO */}
-            <div className="text-sm w-full max-w-none md:max-w-[260px] space-y-3">
-              <div className="space-y-1">
-                <h1 className="font-medium">{product.title}</h1>
-                <p className="text-xs text-neutral-500">
-                  No. {product.id.slice(-8)}
-                </p>
-              </div>
+            <div className="text-sm max-w-[260px] space-y-3">
+              <h1 className="font-medium">{product.title}</h1>
+              <p className="text-xs text-neutral-500">
+                No. {product.id.slice(-8)}
+              </p>
 
               <div className="h-px bg-neutral-300" />
-
               <p>
                 {price.currencyCode} {price.amount}
               </p>
-
               <div className="h-px bg-neutral-300" />
 
               <div className="flex gap-3">
@@ -250,15 +281,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                       onClick={() =>
                         available && setSelectedVariantId(variant.id)
                       }
-                      className={`
-                        text-xs pb-1 border-b transition
-                        ${
-                          selected
-                            ? "border-[hsl(var(--rk2-color-accent))] text-[hsl(var(--rk2-color-accent))]"
-                            : "border-transparent text-neutral-400"
-                        }
-                        ${!available && "opacity-30 cursor-not-allowed"}
-                      `}
+                      className={`text-xs pb-1 border-b transition ${
+                        selected
+                          ? "border-[hsl(var(--rk2-color-accent))] text-[hsl(var(--rk2-color-accent))]"
+                          : "border-transparent text-neutral-400"
+                      } ${!available && "opacity-30 cursor-not-allowed"}`}
                     >
                       {variant.title}
                     </button>
@@ -276,82 +303,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   Out of stock
                 </button>
               ) : (
-                <AddToCartButton
-                  variantId={selectedVariantId}
-                  disabled={
-                    !selectedVariantId ||
-                    !variants.find(
-                      (v) =>
-                        v.id === selectedVariantId && getAvailableStock(v) > 0
-                    )
-                  }
-                />
+                <AddToCartButton variantId={selectedVariantId} />
               )}
-
-              <p className="text-[10px] text-neutral-400">
-                Delivery, exchanges and returns
-              </p>
-
-              {/* MOBILE DETAILS */}
-              <div className="md:hidden border-t border-neutral-200 text-[11px] text-neutral-500">
-                <details className="group border-b border-neutral-200">
-                  <summary className="flex items-center justify-between py-4 cursor-pointer list-none">
-                    <span className="uppercase">Details</span>
-
-                    <span className="relative w-3 h-3 flex items-center justify-center text-xs">
-                      <span className="group-open:hidden">+</span>
-                      <span className="hidden group-open:inline text-[hsl(var(--rk2-color-accent))] opacity-70">
-                        /
-                      </span>
-                    </span>
-                  </summary>
-
-                  <div className="pb-4 pr-6">
-                    <p>{product.description || "—"}</p>
-                  </div>
-                </details>
-
-                <details className="group border-b border-neutral-200">
-                  <summary className="flex items-center justify-between py-4 cursor-pointer list-none">
-                    <span className="uppercase">Care</span>
-                    <span className="relative w-3 h-3 flex items-center justify-center text-xs">
-                      {/* plus (default) */}
-                      <span className="group-open:hidden">+</span>
-
-                      {/* slash (open state) */}
-                      <span className="hidden group-open:inline text-[hsl(var(--rk2-color-accent))] opacity-70">
-                        /
-                      </span>
-                    </span>
-                  </summary>
-                  <div className="pb-4 pr-6">
-                    <p>Wash cold. Do not tumble dry.</p>
-                  </div>
-                </details>
-
-                <details className="group border-b border-neutral-200">
-                  <summary className="flex items-center justify-between py-4 cursor-pointer list-none">
-                    <span className="uppercase">Origin</span>
-                    <span className="relative w-3 h-3 flex items-center justify-center text-xs">
-                      {/* plus (default) */}
-                      <span className="group-open:hidden">+</span>
-
-                      {/* slash (open state) */}
-                      <span className="hidden group-open:inline text-[hsl(var(--rk2-color-accent))] opacity-70">
-                        /
-                      </span>
-                    </span>
-                  </summary>
-                  <div className="pb-4 pr-6">
-                    <p>Designed in Belgium.</p>
-                  </div>
-                </details>
-              </div>
             </div>
           </div>
-
-          {/* DIVIDER — DESKTOP ONLY */}
-          <div className="hidden md:block absolute left-[-10px] top-0 h-full w-px bg-neutral-300" />
         </aside>
       </div>
     </section>

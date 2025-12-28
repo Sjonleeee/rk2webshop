@@ -17,8 +17,8 @@ export default function CategorySidebar({
   );
 
   // Consistente styling-tokens
-  const ACTIVE_TEXT_COLOR = "text-[#2433C4]";
-  const HOVER_TEXT_COLOR = "hover:text-[#1c2de7]";
+  const ACTIVE_TEXT_COLOR = "text-[hsl(var(--rk2-color-accent))]";
+  const HOVER_TEXT_COLOR = "hover:text-[hsl(var(--rk2-color-accent))]";
   const DIM_TEXT_COLOR = "group-hover/category-menu:text-gray-400";
 
   // Desktop: compact, dichter op elkaar
@@ -83,7 +83,7 @@ export default function CategorySidebar({
         </div>
 
         {/* ================= DESKTOP: verticale sidebar ================= */}
-        <div className="hidden sm:flex flex-col gap-0 bg-white/70 backdrop-blur-sm p-2 rounded-md max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <div className="hidden sm:flex flex-col gap-0 overflow-y-auto">
           <button
             type="button"
             className={`category-sidebar-link ${verticalButtonClasses} ${

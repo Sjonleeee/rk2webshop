@@ -542,35 +542,6 @@
   border-bottom: 1px solid var(--color-neutral-200);
 }
 
-.navbar-brand {
-  font-weight: bold;
-  font-size: 1.5rem;
-  color: var(--color-neutral-900);
-  text-decoration: none;
-  transition: color 0.15s ease-in-out;
-}
-
-.navbar-brand:hover {
-  color: var(--color-primary-600);
-}
-
-.navbar-nav {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.navbar-link {
-  color: var(--color-neutral-700);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.15s ease-in-out;
-}
-
-.navbar-link:hover {
-  color: var(--color-primary-600);
-}
-
 /* Layout Styles */
 .page-container {
   min-height: 100vh;

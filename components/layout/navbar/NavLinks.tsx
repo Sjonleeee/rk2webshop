@@ -8,12 +8,20 @@ import NavDropdown from "./NavDropdown";
 interface Props {
   menuOpen: boolean;
   onToggle: () => void;
-  onDropdownOpenChange?: (isOpen: boolean, label: string, items: { label: string; href: string }[]) => void;
+  onDropdownOpenChange?: (
+    isOpen: boolean,
+    label: string,
+    items: { label: string; href: string }[]
+  ) => void;
 }
 
-export default function NavLinks({ menuOpen, onToggle, onDropdownOpenChange }: Props) {
+export default function NavLinks({
+  menuOpen,
+  onToggle,
+  onDropdownOpenChange,
+}: Props) {
   const pathname = usePathname();
-  
+
   const isActive = (path: string) => {
     if (path === "/shop") {
       return pathname === "/shop" || pathname.startsWith("/product");
@@ -35,32 +43,38 @@ export default function NavLinks({ menuOpen, onToggle, onDropdownOpenChange }: P
       {/* Desktop nav */}
       <ul className="hidden sm:flex gap-6 flex-1 items-center">
         <li>
-          <Link 
-            href="/shop" 
-            className={`nav-link nav-link-hover text-xs transition-opacity ${isActive("/shop") ? "nav-link-active" : ""}`}
+          <Link
+            href="/shop"
+            className={`nav-link nav-link-hover text-xs ${
+              isActive("/shop") ? "nav-link-active" : ""
+            }`}
           >
-            Shop all
+            shop all
           </Link>
         </li>
         <li>
-          <Link 
-            href="/about" 
-            className={`nav-link nav-link-hover text-xs transition-opacity ${isActive("/about") ? "nav-link-active" : ""}`}
+          <Link
+            href="/about"
+            className={`nav-link nav-link-hover text-xs ${
+              isActive("/about") ? "nav-link-active" : ""
+            }`}
           >
-            About us
+            about us
           </Link>
         </li>
         <li>
-          <Link 
-            href="/collaborations" 
-            className={`nav-link nav-link-hover text-xs transition-opacity ${isActive("/collaborations") ? "nav-link-active" : ""}`}
+          <Link
+            href="/archive"
+            className={`nav-link nav-link-hover text-xs ${
+              isActive("/archive") ? "nav-link-active" : ""
+            }`}
           >
-            Collaborations
+            archive
           </Link>
         </li>
         <li>
           <NavDropdown
-            label="More"
+            label="more"
             items={[
               { label: "Customer Support", href: "/" },
               { label: "Contact Us", href: "/contact" },
@@ -72,17 +86,19 @@ export default function NavLinks({ menuOpen, onToggle, onDropdownOpenChange }: P
               { label: "YouTube", href: "https://youtube.com" },
               { label: "TikTok", href: "https://tiktok.com" },
             ]}
-            onOpenChange={(isOpen) => onDropdownOpenChange?.(isOpen, "More", [
-              { label: "Customer Support", href: "/" },
-              { label: "Contact Us", href: "/contact" },
-              { label: "Shipping", href: "/shipping" },
-              { label: "Returns", href: "/returns" },
-              { label: "Links", href: "/" },
-              { label: "About", href: "/about" },
-              { label: "Instagram", href: "https://instagram.com" },
-              { label: "YouTube", href: "https://youtube.com" },
-              { label: "TikTok", href: "https://tiktok.com" },
-            ])}
+            onOpenChange={(isOpen) =>
+              onDropdownOpenChange?.(isOpen, "More", [
+                { label: "Customer Support", href: "/" },
+                { label: "Contact Us", href: "/contact" },
+                { label: "Shipping", href: "/shipping" },
+                { label: "Returns", href: "/returns" },
+                { label: "Links", href: "/" },
+                { label: "About", href: "/about" },
+                { label: "Instagram", href: "https://instagram.com" },
+                { label: "YouTube", href: "https://youtube.com" },
+                { label: "TikTok", href: "https://tiktok.com" },
+              ])
+            }
           />
         </li>
       </ul>
