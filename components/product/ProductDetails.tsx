@@ -175,6 +175,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   fill
                   className="object-contain"
                   priority
+                  sizes="320px"
                 />
               </div>
             ))}
@@ -221,6 +222,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     fill
                     priority={index === 0}
                     className="object-contain"
+                    sizes="(min-width: 768px) 50vw, 100vw"
                   />
                 </div>
               </div>
@@ -250,6 +252,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                       alt=""
                       fill
                       className="object-contain"
+                      sizes="32px"
                     />
                   </div>
                 </button>

@@ -15,19 +15,22 @@ export default function CartItem({ line }: Props) {
 
   const product = line.node.merchandise.product;
   const options = line.node.merchandise.selectedOptions ?? [];
-  const size = options.find((o) => o.name.toLowerCase() === "size")?.value || 
-               options.find((o) => o.name === "Size")?.value;
+  const size =
+    options.find((o) => o.name.toLowerCase() === "size")?.value ||
+    options.find((o) => o.name === "Size")?.value;
 
-  // Gebruik cost.totalAmount als beschikbaar, anders bereken handmatig
-  const lineTotal = line.node.cost?.totalAmount?.amount 
+  const lineTotal = line.node.cost?.totalAmount?.amount
     ? parseFloat(line.node.cost.totalAmount.amount).toFixed(2)
-    : (parseFloat(line.node.merchandise.priceV2?.amount ?? "0") * line.node.quantity).toFixed(2);
+    : (
+        parseFloat(line.node.merchandise.priceV2?.amount ?? "0") *
+        line.node.quantity
+      ).toFixed(2);
 
   const handleRemove = () => {
     setIsRemoving(true);
     setTimeout(() => {
       removeFromCart(line.node.id);
-    }, 300); // Match transition duration
+    }, 300);
   };
 
   return (
@@ -36,17 +39,22 @@ export default function CartItem({ line }: Props) {
         isRemoving ? "opacity-0" : "opacity-100"
       }`}
     >
+      {/* IMAGE */}
       {product.featuredImage?.url && (
-        <Image
-          src={product.featuredImage.url}
-          alt={product.title}
-          width={120}
-          height={90}
-        />
+        <div className="relative w-[80px] aspect-3/4 shrink-0">
+          <Image
+            src={product.featuredImage.url}
+            alt={product.title}
+            fill
+            className="object-contain"
+            sizes="80px"
+          />
+        </div>
       )}
 
+      {/* INFO */}
       <div className="flex-1">
-        <div className="font-medium">{product.title}</div>
+        <div className="font-medium text-sm">{product.title}</div>
 
         {size && (
           <div className="text-[11px] text-gray-500 mt-1">
@@ -60,13 +68,14 @@ export default function CartItem({ line }: Props) {
 
         <button
           onClick={handleRemove}
-          className="mt-2 text-[11px] underline text-gray-500"
+          className="mt-2 text-[11px] underline text-gray-500 hover:text-[hsl(var(--rk2-color-accent))]"
         >
           Remove
         </button>
       </div>
 
-      <div className="font-medium text-right">
+      {/* PRICE */}
+      <div className="font-medium text-right text-sm whitespace-nowrap">
         € {lineTotal}
       </div>
     </div>
