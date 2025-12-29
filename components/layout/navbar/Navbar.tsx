@@ -214,7 +214,7 @@ export default function Navbar() {
                         </li>
                         <li>
                           <Link
-                            href="/shipping"
+                            href="/shipping-returns"
                             className="navbar-dropdown-link"
                             onClick={() => setDropdownOpen(null)}
                           >
@@ -223,7 +223,7 @@ export default function Navbar() {
                         </li>
                         <li>
                           <Link
-                            href="/returns"
+                            href="/privacy-policy"
                             className="navbar-dropdown-link"
                             onClick={() => setDropdownOpen(null)}
                           >
@@ -373,14 +373,14 @@ export default function Navbar() {
                     contact us
                   </Link>
                   <Link
-                    href="/shipping"
+                    href="/shipping-returns"
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
                     shipping & returns
                   </Link>
                   <Link
-                    href="/returns"
+                    href="/privacy-policy"
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
