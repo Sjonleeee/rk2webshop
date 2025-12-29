@@ -93,10 +93,10 @@ export default function ContactPage() {
             <p>
               Email:{" "}
               <a
-                href="mailto:rk2.archive@gmail.com"
+                href="mailto:info@rk2archive.com"
                 className="underline underline-offset-2"
               >
-                rk2.archive@gmail.com
+                info@rk2archive.com
               </a>
             </p>
 

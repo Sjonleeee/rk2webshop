@@ -196,7 +196,7 @@ export default function Navbar() {
                 {/* Left column */}
                 <div>
                   <ul className="navbar-dropdown-list">
-                    {dropdownOpen.label === "More" && (
+                    {dropdownOpen.label === "more" && (
                       <>
                         <li>
                           <div className="navbar-dropdown-heading">
@@ -233,7 +233,7 @@ export default function Navbar() {
                       </>
                     )}
 
-                    {dropdownOpen.label !== "More" &&
+                    {dropdownOpen.label !== "more" &&
                       dropdownOpen.items.map((item, index) => (
                         <li key={index}>
                           <Link
@@ -249,7 +249,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Right column */}
-                {dropdownOpen.label === "More" && (
+                {dropdownOpen.label === "more" && (
                   <div>
                     <ul className="navbar-dropdown-list">
                       <li>
@@ -350,7 +350,7 @@ export default function Navbar() {
                 className="mobile-menu-toggle"
                 onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
               >
-                <span className="mobile-menu-link">More</span>
+                <span className="mobile-menu-link">more</span>
                 <span
                   className={`mobile-menu-toggle-icon ${
                     mobileMoreOpen ? "open" : ""
