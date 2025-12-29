@@ -77,11 +77,11 @@
   margin: 0 auto;
   padding: var(--rk2-space-xl) var(--rk2-space-xl);
 }
-
 .navbar-dropdown-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--rk2-space-lg);
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
 }
 
 .navbar-dropdown-list {

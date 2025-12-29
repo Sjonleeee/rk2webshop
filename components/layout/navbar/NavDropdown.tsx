@@ -10,7 +10,7 @@ interface NavDropdownProps {
 
 export default function NavDropdown({
   label,
-  items,
+  items, 
   onOpenChange,
 }: NavDropdownProps) {
   // Items are not used in this component - they're passed to parent via onOpenChange

@@ -196,7 +196,7 @@ export default function Navbar() {
                 {/* Left column */}
                 <div>
                   <ul className="navbar-dropdown-list">
-                    {dropdownOpen.label === "more" && (
+                    {dropdownOpen.label === "More" && (
                       <>
                         <li>
                           <div className="navbar-dropdown-heading">
@@ -233,7 +233,7 @@ export default function Navbar() {
                       </>
                     )}
 
-                    {dropdownOpen.label !== "more" &&
+                    {dropdownOpen.label !== "More" &&
                       dropdownOpen.items.map((item, index) => (
                         <li key={index}>
                           <Link
@@ -249,7 +249,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Right column */}
-                {dropdownOpen.label === "more" && (
+                {dropdownOpen.label === "More" && (
                   <div>
                     <ul className="navbar-dropdown-list">
                       <li>
@@ -350,7 +350,7 @@ export default function Navbar() {
                 className="mobile-menu-toggle"
                 onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
               >
-                <span className="mobile-menu-link">more</span>
+                <span className="mobile-menu-link">More</span>
                 <span
                   className={`mobile-menu-toggle-icon ${
                     mobileMoreOpen ? "open" : ""
@@ -387,13 +387,13 @@ export default function Navbar() {
                     privacy policy
                   </Link>
 
-                  <div className="mobile-menu-dropdown-heading">links</div>
+                  <div className="mobile-menu-dropdown-heading">Links</div>
                   <Link
                     href="/about"
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    about us
+                    About
                   </Link>
                   <Link
                     href="https://www.instagram.com/rk2.archive/"
@@ -402,7 +402,7 @@ export default function Navbar() {
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    instagram
+                    Instagram
                   </Link>
                   <Link
                     href="https://youtube.com"
@@ -411,7 +411,7 @@ export default function Navbar() {
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    youTube
+                    YouTube
                   </Link>
                   <Link
                     href="https://tiktok.com"
@@ -420,7 +420,7 @@ export default function Navbar() {
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    tikTok
+                    TikTok
                   </Link>
                 </div>
               )}
