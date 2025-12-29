@@ -78,8 +78,8 @@ export default function NavLinks({
             items={[
               { label: "Customer Support", href: "/" },
               { label: "Contact Us", href: "/contact" },
-              { label: "Shipping", href: "/shipping" },
-              { label: "Returns", href: "/returns" },
+              { label: "Shipping & Returns", href: "/shipping" },
+              { label: "Privacy Policy", href: "/privacy-policy" },
               { label: "Links", href: "/" },
               { label: "About", href: "/about" },
               { label: "Instagram", href: "https://instagram.com" },
@@ -90,8 +90,8 @@ export default function NavLinks({
               onDropdownOpenChange?.(isOpen, "More", [
                 { label: "Customer Support", href: "/" },
                 { label: "Contact Us", href: "/contact" },
-                { label: "Shipping", href: "/shipping" },
-                { label: "Returns", href: "/returns" },
+                { label: "Shipping & Returns", href: "/shipping" },
+                { label: "Privacy Policy", href: "/privacy-policy" },
                 { label: "Links", href: "/" },
                 { label: "About", href: "/about" },
                 { label: "Instagram", href: "https://instagram.com" },

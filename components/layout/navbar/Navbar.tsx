@@ -22,25 +22,27 @@ export default function Navbar() {
     label: string;
     items: { label: string; href: string }[];
   } | null>(null);
+
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navbarRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
   const { cart } = useCart();
 
-  // Reset dropdown when navigating to a new page
+  /* ---------------- Reset dropdown on navigation ---------------- */
   useEffect(() => {
-    // Clear timeout and reset dropdown state on navigation
     if (dropdownTimeoutRef.current) {
       clearTimeout(dropdownTimeoutRef.current);
       dropdownTimeoutRef.current = null;
     }
-    // Use setTimeout to avoid cascading renders
+
     const timeoutId = setTimeout(() => {
       setDropdownOpen(null);
     }, 0);
+
     return () => clearTimeout(timeoutId);
   }, [pathname]);
 
+  /* ---------------- Lock body scroll ---------------- */
   useEffect(() => {
     document.body.style.overflow = menuOpen || cartOpen ? "hidden" : "";
     return () => {
@@ -48,16 +50,18 @@ export default function Navbar() {
     };
   }, [menuOpen, cartOpen]);
 
-  // Close dropdown when clicking outside
+  /* ---------------- Click outside dropdown ---------------- */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
+
       if (
         dropdownOpen &&
         !target.closest("[data-dropdown-trigger]") &&
         !target.closest("[data-dropdown-content]")
       ) {
         setDropdownOpen(null);
+
         if (dropdownTimeoutRef.current) {
           clearTimeout(dropdownTimeoutRef.current);
           dropdownTimeoutRef.current = null;
@@ -74,6 +78,7 @@ export default function Navbar() {
     };
   }, [dropdownOpen]);
 
+  /* ---------------- Cart totals ---------------- */
   const lines = cart?.lines?.edges ?? [];
 
   const totalQty = lines.reduce((sum, edge) => sum + edge.node.quantity, 0);
@@ -98,20 +103,15 @@ export default function Navbar() {
             menuOpen={menuOpen}
             onToggle={() => setMenuOpen((v) => !v)}
             onDropdownOpenChange={(isOpen, label, items) => {
-              // Clear any existing timeout immediately
               if (dropdownTimeoutRef.current) {
                 clearTimeout(dropdownTimeoutRef.current);
                 dropdownTimeoutRef.current = null;
               }
 
               if (isOpen) {
-                // Always open immediately when hovered - no delay
                 setDropdownOpen({ label, items });
               } else {
-                // Only start closing delay if not moving to dropdown content
-                // The delay allows mouse to move from trigger to content
                 dropdownTimeoutRef.current = setTimeout(() => {
-                  // Double check before closing
                   const trigger = document.querySelector(
                     "[data-dropdown-trigger]:hover"
                   );
@@ -154,29 +154,25 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* Dropdown overlay - part of navbar, goes over content */}
+        {/* ---------------- DROPDOWN ---------------- */}
         {dropdownOpen && (
           <div
+            data-dropdown-content
             className="absolute left-0 right-0 bg-[#F6F7FB]/60 backdrop-blur-xl shadow-xl border-t-[0.5px] border-foreground/10 z-40"
             onMouseEnter={() => {
-              // Keep dropdown open when hovering over content
-              // Clear any timeout that might close it
               if (dropdownTimeoutRef.current) {
                 clearTimeout(dropdownTimeoutRef.current);
                 dropdownTimeoutRef.current = null;
               }
             }}
             onMouseLeave={(e) => {
-              // Check if mouse is moving to another dropdown trigger
               const relatedTarget = e.relatedTarget as HTMLElement;
               const isMovingToTrigger = relatedTarget?.closest(
                 "[data-dropdown-trigger]"
               );
 
               if (!isMovingToTrigger) {
-                // Add delay before closing to allow mouse to move back to trigger
                 dropdownTimeoutRef.current = setTimeout(() => {
-                  // Double check that mouse is not over trigger or content
                   const trigger = document.querySelector(
                     "[data-dropdown-trigger]:hover"
                   );
@@ -188,7 +184,6 @@ export default function Navbar() {
                   }
                 }, 200);
               } else {
-                // Clear any existing timeout if moving to trigger
                 if (dropdownTimeoutRef.current) {
                   clearTimeout(dropdownTimeoutRef.current);
                   dropdownTimeoutRef.current = null;
@@ -198,7 +193,7 @@ export default function Navbar() {
           >
             <div className="navbar-dropdown-content">
               <div className="navbar-dropdown-grid">
-                {/* Left column - Customer Support */}
+                {/* Left column */}
                 <div>
                   <ul className="navbar-dropdown-list">
                     {dropdownOpen.label === "More" && (
@@ -214,7 +209,7 @@ export default function Navbar() {
                             className="navbar-dropdown-link"
                             onClick={() => setDropdownOpen(null)}
                           >
-                            Contact Us
+                            contact us
                           </Link>
                         </li>
                         <li>
@@ -223,7 +218,7 @@ export default function Navbar() {
                             className="navbar-dropdown-link"
                             onClick={() => setDropdownOpen(null)}
                           >
-                            Shipping
+                            shipping & returns
                           </Link>
                         </li>
                         <li>
@@ -232,11 +227,12 @@ export default function Navbar() {
                             className="navbar-dropdown-link"
                             onClick={() => setDropdownOpen(null)}
                           >
-                            Returns
+                            privacy policy
                           </Link>
                         </li>
                       </>
                     )}
+
                     {dropdownOpen.label !== "More" &&
                       dropdownOpen.items.map((item, index) => (
                         <li key={index}>
@@ -252,12 +248,12 @@ export default function Navbar() {
                   </ul>
                 </div>
 
-                {/* Right column - Links */}
+                {/* Right column */}
                 {dropdownOpen.label === "More" && (
                   <div>
                     <ul className="navbar-dropdown-list">
                       <li>
-                        <div className="navbar-dropdown-heading">Links</div>
+                        <div className="navbar-dropdown-heading">links</div>
                       </li>
                       <li>
                         <Link
@@ -267,7 +263,7 @@ export default function Navbar() {
                           className="navbar-dropdown-link"
                           onClick={() => setDropdownOpen(null)}
                         >
-                          Instagram
+                          instagram
                         </Link>
                       </li>
                       <li>
@@ -278,7 +274,7 @@ export default function Navbar() {
                           className="navbar-dropdown-link"
                           onClick={() => setDropdownOpen(null)}
                         >
-                          YouTube
+                          youTube
                         </Link>
                       </li>
                       <li>
@@ -289,7 +285,7 @@ export default function Navbar() {
                           className="navbar-dropdown-link"
                           onClick={() => setDropdownOpen(null)}
                         >
-                          TikTok
+                          tikTok
                         </Link>
                       </li>
                     </ul>
@@ -301,14 +297,15 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Mobile Menu */}
+      {/* ---------------- MOBILE MENU ---------------- */}
       <div
         className={`mobile-menu-backdrop ${menuOpen ? "" : "hidden"}`}
         onClick={() => setMenuOpen(false)}
       />
+
       <aside className={`mobile-menu ${menuOpen ? "open" : "hidden"}`}>
         <div className="mobile-menu-header">
-          <h2>Menu</h2>
+          <h2>menu</h2>
           <button
             onClick={() => setMenuOpen(false)}
             className="mobile-menu-close"
@@ -317,6 +314,7 @@ export default function Navbar() {
             <HiX />
           </button>
         </div>
+
         <nav className="mobile-menu-content">
           <ul className="mobile-menu-list">
             <li>
@@ -325,7 +323,7 @@ export default function Navbar() {
                 className="mobile-menu-link"
                 onClick={() => setMenuOpen(false)}
               >
-                Shop all
+                shop all
               </Link>
             </li>
             <li>
@@ -334,7 +332,7 @@ export default function Navbar() {
                 className="mobile-menu-link"
                 onClick={() => setMenuOpen(false)}
               >
-                About us
+                about us
               </Link>
             </li>
             <li>
@@ -343,9 +341,10 @@ export default function Navbar() {
                 className="mobile-menu-link"
                 onClick={() => setMenuOpen(false)}
               >
-                Collaborations
+                collaborations
               </Link>
             </li>
+
             <li>
               <button
                 className="mobile-menu-toggle"
@@ -360,39 +359,41 @@ export default function Navbar() {
                   {mobileMoreOpen ? "/" : "+"}
                 </span>
               </button>
+
               {mobileMoreOpen && (
                 <div className="mobile-menu-dropdown">
                   <div className="mobile-menu-dropdown-heading">
-                    Customer Support
+                    customer support
                   </div>
                   <Link
                     href="/contact"
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Contact Us
+                    contact us
                   </Link>
                   <Link
                     href="/shipping"
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Shipping
+                    shipping & returns
                   </Link>
                   <Link
                     href="/returns"
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Returns
+                    privacy policy
                   </Link>
-                  <div className="mobile-menu-dropdown-heading">Links</div>
+
+                  <div className="mobile-menu-dropdown-heading">links</div>
                   <Link
                     href="/about"
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    About
+                    about us
                   </Link>
                   <Link
                     href="https://www.instagram.com/rk2.archives/"
@@ -401,7 +402,7 @@ export default function Navbar() {
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Instagram
+                    instagram
                   </Link>
                   <Link
                     href="https://youtube.com"
@@ -410,7 +411,7 @@ export default function Navbar() {
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    YouTube
+                    youTube
                   </Link>
                   <Link
                     href="https://tiktok.com"
@@ -419,13 +420,14 @@ export default function Navbar() {
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    TikTok
+                    tikTok
                   </Link>
                 </div>
               )}
             </li>
           </ul>
         </nav>
+
         <div className="mobile-menu-footer">
           <div className="mobile-menu-copyright">
             <div>©2026</div>

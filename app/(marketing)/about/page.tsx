@@ -34,11 +34,11 @@ export default function AboutPage() {
           <p>
             Our pieces are{" "}
             <span className="font-medium">
-              designed for those who live in motion. <br /> Individuals who
-              choose to{" "}
-              <span className="italic">evolve rather than stay the same</span>...
+              designed for those who choose movement over stillness.. <br />{" "}
+              Individuals who choose to{" "}
+              <span className="italic">evolve rather than stay the same</span>
+              ...
             </span>
-            
           </p>
 
           <p></p>

@@ -284,8 +284,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                       className={`text-xs pb-1 border-b transition ${
                         selected
                           ? "border-[hsl(var(--rk2-color-accent))] text-[hsl(var(--rk2-color-accent))]"
-                          : "border-transparent text-neutral-400"
-                      } ${!available && "opacity-30 cursor-not-allowed"}`}
+                          : "border-transparent text-neutral-700"
+                      } ${!available && "opacity-10 cursor-not-allowed"}`}
                     >
                       {variant.title}
                     </button>
