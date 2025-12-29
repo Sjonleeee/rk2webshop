@@ -257,7 +257,7 @@ export default function Navbar() {
                       </li>
                       <li>
                         <Link
-                          href="https://www.instagram.com/rk2.archives/"
+                          href="https://www.instagram.com/rk2.archive/"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="navbar-dropdown-link"
@@ -396,7 +396,7 @@ export default function Navbar() {
                     about us
                   </Link>
                   <Link
-                    href="https://www.instagram.com/rk2.archives/"
+                    href="https://www.instagram.com/rk2.archive/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mobile-menu-dropdown-link"
