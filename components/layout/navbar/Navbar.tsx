@@ -396,7 +396,7 @@ export default function Navbar() {
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Instagram
+                    instagram
                   </Link>
                   <Link
                     href="https://youtube.com"
@@ -405,7 +405,7 @@ export default function Navbar() {
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    YouTube
+                    youTube
                   </Link>
                   <Link
                     href="https://tiktok.com"
@@ -414,7 +414,7 @@ export default function Navbar() {
                     className="mobile-menu-dropdown-link"
                     onClick={() => setMenuOpen(false)}
                   >
-                    TikTok
+                    tikTok
                   </Link>
                 </div>
               )}

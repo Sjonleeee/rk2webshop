@@ -285,7 +285,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                         selected
                           ? "border-[hsl(var(--rk2-color-accent))] text-[hsl(var(--rk2-color-accent))]"
                           : "border-transparent text-neutral-700"
-                      } ${!available && "opacity-10 cursor-not-allowed"}`}
+                      } ${!available && "opacity-25 cursor-not-allowed"}`}
                     >
                       {variant.title}
                     </button>
