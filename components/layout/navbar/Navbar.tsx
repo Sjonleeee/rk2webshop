@@ -337,11 +337,11 @@ export default function Navbar() {
             </li>
             <li>
               <Link
-                href="/collaborations"
+                href="/archve"
                 className="mobile-menu-link"
                 onClick={() => setMenuOpen(false)}
               >
-                collaborations
+                archive
               </Link>
             </li>
 
@@ -350,7 +350,7 @@ export default function Navbar() {
                 className="mobile-menu-toggle"
                 onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
               >
-                <span className="mobile-menu-link">More</span>
+                <span className="mobile-menu-link">more</span>
                 <span
                   className={`mobile-menu-toggle-icon ${
                     mobileMoreOpen ? "open" : ""
@@ -388,13 +388,7 @@ export default function Navbar() {
                   </Link>
 
                   <div className="mobile-menu-dropdown-heading">Links</div>
-                  <Link
-                    href="/about"
-                    className="mobile-menu-dropdown-link"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    About
-                  </Link>
+
                   <Link
                     href="https://www.instagram.com/rk2.archive/"
                     target="_blank"
