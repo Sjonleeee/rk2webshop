@@ -559,3 +559,25 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
 }
+/* -----------------------------
+   Cart item remove animation
+------------------------------ */
+
+.cart-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  transition: opacity 200ms ease, transform 200ms ease, max-height 260ms ease,
+    margin 260ms ease, padding 260ms ease;
+  max-height: 200px; /* genoeg voor content */
+  overflow: hidden;
+}
+
+.cart-item.removing {
+  opacity: 0;
+  transform: translateY(-4px);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+}
