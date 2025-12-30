@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 export default function HomePage() {
   const [password, setPassword] = useState("");
@@ -19,7 +20,6 @@ export default function HomePage() {
     });
 
     if (res.ok) {
-      // 🔓 access granted → redirect
       window.location.href = "/shop";
     } else {
       setError(true);
@@ -29,9 +29,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-8">
-      <div className="flex flex-col items-center gap-8">
+      <div className="flex flex-col items-center gap-10">
         {/* LOGO + TAGLINE */}
-        <div className="flex items-center gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="flex items-center gap-4"
+        >
           <Image
             src="/logos/rk2logo.png"
             alt="R/K2"
@@ -45,10 +50,15 @@ export default function HomePage() {
             <div>Designed For Motion</div>
             <div className="-mt-0.5">Made To Last</div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* PASSWORD INPUT */}
-        <div className="flex flex-col items-center gap-3">
+        {/* PASSWORD */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col items-center gap-3"
+        >
           <input
             type="password"
             placeholder="Password"
@@ -67,11 +77,9 @@ export default function HomePage() {
           </button>
 
           {error && (
-            <span className="text-[7px] text-red-600">
-              Incorrect password
-            </span>
+            <span className="text-[7px] text-red-600">Incorrect password</span>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
