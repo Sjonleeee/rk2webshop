@@ -75,14 +75,16 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const getAvailableStock = (v: ProductVariant) =>
     Math.max(0, v.quantityAvailable - (quantitiesInCart[v.id] || 0));
 
-  const isOutOfStock = variants.every((v) => getAvailableStock(v) === 0);
-
   const firstAvailableVariantId =
     variants.find((v) => getAvailableStock(v) > 0)?.id ?? null;
 
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     firstAvailableVariantId
   );
+
+  const selectedVariantAvailable = selectedVariantId
+    ? getAvailableStock(variants.find((v) => v.id === selectedVariantId)!)
+    : 0;
 
   /* ------------------------------------------------------------------
    * Scroll handlers
@@ -298,7 +300,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
               <div className="h-px bg-neutral-300" />
 
-              {isOutOfStock ? (
+              {selectedVariantAvailable === 0 ? (
                 <button
                   disabled
                   className="w-full border border-neutral-300 py-3 text-xs text-neutral-400"
@@ -306,7 +308,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   Out of stock
                 </button>
               ) : (
-                <AddToCartButton variantId={selectedVariantId} />
+                <AddToCartButton
+                  variantId={selectedVariantId}
+                  disabled={selectedVariantAvailable === 0}
+                />
               )}
             </div>
           </div>

@@ -21,8 +21,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const isAuthenticated =
-    request.cookies.get("rk2-auth")?.value === "true";
+  const isAuthenticated = request.cookies.get("rk2-auth")?.value === "true";
 
   // 🚫 Block everything else
   if (!isAuthenticated) {
