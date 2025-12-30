@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+  useCallback,
+} from "react";
 import { storefront } from "@/lib/shopify/client";
 import {
   GET_CART_QUERY,
@@ -85,7 +92,7 @@ export function useCart(): CartContextType {
 ======================= */
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  // Initialize cartId from localStorage (SSR-safe)
+  // SSR-safe init
   const [cartId, setCartId] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     return localStorage.getItem("cartId");
@@ -93,70 +100,176 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const [cart, setCart] = useState<ShopifyCart | null>(null);
 
-  async function fetchCart(id: string) {
-    const data = await storefront(GET_CART_QUERY, { cartId: id });
-    setCart(data.cart);
-  }
+  /* -----------------------
+     Helpers
+  ------------------------ */
 
-  async function createCart(variantId: string, quantity: number) {
-    const data = await storefront(CREATE_CART_MUTATION, {
-      lines: [{ merchandiseId: variantId, quantity }],
-    });
+  const persistCartId = useCallback((id: string | null) => {
+    if (typeof window === "undefined") return;
+    if (id) localStorage.setItem("cartId", id);
+    else localStorage.removeItem("cartId");
+  }, []);
 
-    if (data?.cartCreate?.cart) {
-    const newCart = data.cartCreate.cart;
+  /* -----------------------
+     Create EMPTY cart
+     (used for recovery)
+  ------------------------ */
+  const createEmptyCart = useCallback(async () => {
+    const data = await storefront(CREATE_CART_MUTATION, { lines: [] });
+
+    const newCart: ShopifyCart | undefined = data?.cartCreate?.cart;
+    if (!newCart?.id) {
+      throw new Error("Failed to create empty cart");
+    }
+
     setCart(newCart);
     setCartId(newCart.id);
-      if (typeof window !== "undefined") {
-    localStorage.setItem("cartId", newCart.id);
+    persistCartId(newCart.id);
+
+    return newCart;
+  }, [persistCartId]);
+
+  /* -----------------------
+     Fetch cart (SAFE)
+  ------------------------ */
+  const fetchCart = useCallback(
+    async (id: string) => {
+      try {
+        const data = await storefront(GET_CART_QUERY, { cartId: id });
+
+        // Shopify returns null if cart expired / checkout completed
+        if (!data?.cart?.id) {
+          throw new Error("Cart expired or not found");
+        }
+
+        setCart(data.cart);
+      } catch (error) {
+        console.warn("[Cart] stale cart → resetting", error);
+
+        setCart(null);
+        setCartId(null);
+        persistCartId(null);
+
+        await createEmptyCart();
       }
-    }
-  }
+    },
+    [createEmptyCart, persistCartId]
+  );
 
-  async function addToCart(variantId: string, quantity = 1) {
-    try {
-    if (!cartId) {
-      await createCart(variantId, quantity);
-      return;
-    }
+  /* -----------------------
+     Create cart with first line
+  ------------------------ */
+  const createCart = useCallback(
+    async (variantId: string, quantity: number) => {
+      const data = await storefront(CREATE_CART_MUTATION, {
+        lines: [{ merchandiseId: variantId, quantity }],
+      });
 
-    const data = await storefront(ADD_TO_CART_MUTATION, {
-      cartId,
-      lines: [{ merchandiseId: variantId, quantity }],
-    });
-
-      if (data?.cartLinesAdd?.cart) {
-    setCart(data.cartLinesAdd.cart);
+      const newCart: ShopifyCart | undefined = data?.cartCreate?.cart;
+      if (!newCart?.id) {
+        throw new Error("Failed to create cart");
       }
-    } catch (error) {
-      console.error("Failed to add to cart:", error);
-      throw error;
-    }
-  }
 
-  async function removeFromCart(lineId: string) {
-    if (!cartId) return;
+      setCart(newCart);
+      setCartId(newCart.id);
+      persistCartId(newCart.id);
+    },
+    [persistCartId]
+  );
 
-    const data = await storefront(REMOVE_FROM_CART_MUTATION, {
-      cartId,
-      lineIds: [lineId],
-    });
+  /* -----------------------
+     Add to cart (SAFE)
+  ------------------------ */
+  const addToCart = useCallback(
+    async (variantId: string, quantity = 1) => {
+      try {
+        if (!cartId) {
+          await createCart(variantId, quantity);
+          return;
+        }
 
-    setCart(data.cartLinesRemove.cart);
-  }
+        const data = await storefront(ADD_TO_CART_MUTATION, {
+          cartId,
+          lines: [{ merchandiseId: variantId, quantity }],
+        });
 
-  function clearCart() {
+        const updatedCart: ShopifyCart | undefined =
+          data?.cartLinesAdd?.cart;
+
+        if (!updatedCart?.id) {
+          throw new Error("cartLinesAdd failed (stale cart?)");
+        }
+
+        setCart(updatedCart);
+      } catch (error) {
+        console.error("[Cart] addToCart failed → recovering", error);
+
+        await createEmptyCart();
+
+        const freshId =
+          typeof window !== "undefined"
+            ? localStorage.getItem("cartId")
+            : null;
+
+        if (!freshId) throw error;
+
+        const retry = await storefront(ADD_TO_CART_MUTATION, {
+          cartId: freshId,
+          lines: [{ merchandiseId: variantId, quantity }],
+        });
+
+        if (retry?.cartLinesAdd?.cart?.id) {
+          setCart(retry.cartLinesAdd.cart);
+          setCartId(retry.cartLinesAdd.cart.id);
+          persistCartId(retry.cartLinesAdd.cart.id);
+          return;
+        }
+
+        throw error;
+      }
+    },
+    [cartId, createCart, createEmptyCart, persistCartId]
+  );
+
+  /* -----------------------
+     Remove from cart (SAFE)
+  ------------------------ */
+  const removeFromCart = useCallback(
+    async (lineId: string) => {
+      if (!cartId) return;
+
+      try {
+        const data = await storefront(REMOVE_FROM_CART_MUTATION, {
+          cartId,
+          lineIds: [lineId],
+        });
+
+        if (data?.cartLinesRemove?.cart?.id) {
+          setCart(data.cartLinesRemove.cart);
+        } else {
+          throw new Error("Remove failed (stale cart?)");
+        }
+      } catch {
+        await createEmptyCart();
+      }
+    },
+    [cartId, createEmptyCart]
+  );
+
+  const clearCart = useCallback(() => {
     setCart(null);
     setCartId(null);
-    localStorage.removeItem("cartId");
-  }
+    persistCartId(null);
+  }, [persistCartId]);
 
-  // Hydrate cart on mount if cartId exists
-  React.useEffect(() => {
+  /* -----------------------
+     Hydration on mount
+  ------------------------ */
+  useEffect(() => {
     if (cartId && !cart) {
-    fetchCart(cartId);
+      fetchCart(cartId);
     }
-  }, [cartId, cart]);
+  }, [cartId, cart, fetchCart]);
 
   return (
     <CartContext.Provider

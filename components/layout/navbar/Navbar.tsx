@@ -337,7 +337,7 @@ export default function Navbar() {
             </li>
             <li>
               <Link
-                href="/archve"
+                href="/archive"
                 className="mobile-menu-link"
                 onClick={() => setMenuOpen(false)}
               >
@@ -431,11 +431,13 @@ export default function Navbar() {
         </div>
       </aside>
 
+      {/* ---------------- CART DRAWER ---------------- */}
       <CartDrawer
         open={cartOpen}
         onClose={() => setCartOpen(false)}
         lines={lines}
         subtotal={subtotal}
+        checkoutUrl={cart?.checkoutUrl}
       />
     </>
   );

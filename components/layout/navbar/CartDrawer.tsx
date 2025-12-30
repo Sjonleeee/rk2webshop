@@ -1,6 +1,7 @@
 "use client";
 
 import { HiX } from "react-icons/hi";
+import { useState } from "react";
 import CartItem from "./CartItem";
 import CartEmptyState from "./CartEmptyState";
 import { ShopifyCartLine } from "@/components/providers/CartContext";
@@ -10,9 +11,28 @@ interface Props {
   onClose: () => void;
   lines: ShopifyCartLine[];
   subtotal: string;
+  checkoutUrl?: string;
 }
 
-export default function CartDrawer({ open, onClose, lines, subtotal }: Props) {
+export default function CartDrawer({
+  open,
+  onClose,
+  lines,
+  subtotal,
+  checkoutUrl,
+}: Props) {
+  const [redirecting, setRedirecting] = useState(false);
+
+  const handleCheckout = () => {
+    if (!checkoutUrl) return;
+
+    setRedirecting(true);
+    onClose();
+
+    // 🔥 Shopify OFFICIAL checkout redirect
+    window.location.href = checkoutUrl;
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -22,13 +42,9 @@ export default function CartDrawer({ open, onClose, lines, subtotal }: Props) {
       />
 
       {/* Drawer */}
-      <aside
-        className={`cart-drawer ${open ? "open" : "hidden"}`}
-      >
+      <aside className={`cart-drawer ${open ? "open" : "hidden"}`}>
         <div className="cart-drawer-header">
-          <h2 className="cart-drawer-title">
-            Your selection ({lines.length})
-          </h2>
+          <h2 className="cart-drawer-title">Your selection ({lines.length})</h2>
           <button onClick={onClose} className="cart-drawer-close">
             <HiX className="cart-drawer-close-icon" />
           </button>
@@ -38,9 +54,7 @@ export default function CartDrawer({ open, onClose, lines, subtotal }: Props) {
           {lines.length === 0 ? (
             <CartEmptyState />
           ) : (
-            lines.map((line) => (
-              <CartItem key={line.node.id} line={line} />
-            ))
+            lines.map((line) => <CartItem key={line.node.id} line={line} />)
           )}
         </div>
 
@@ -52,9 +66,10 @@ export default function CartDrawer({ open, onClose, lines, subtotal }: Props) {
 
           <button
             className="cart-drawer-checkout-button"
-            disabled={lines.length === 0}
+            disabled={lines.length === 0 || !checkoutUrl || redirecting}
+            onClick={handleCheckout}
           >
-            CHECK OUT
+            {redirecting ? "REDIRECTING..." : "CHECK OUT"}
           </button>
         </div>
       </aside>
