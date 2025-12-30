@@ -27,3 +27,20 @@
 //     </main>
 //   );
 // }
+
+"use client";
+
+import { motion } from "framer-motion";
+
+export default function ArchivePage() {
+  return (
+    <motion.main
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="min-h-screen flex items-center justify-center"
+    >
+      <h1 className="text-xl font-mono">Archive</h1>
+    </motion.main>
+  );
+}
