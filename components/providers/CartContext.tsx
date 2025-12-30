@@ -112,7 +112,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   /* -----------------------
      Create EMPTY cart
-     (used for recovery)
   ------------------------ */
   const createEmptyCart = useCallback(async () => {
     const data = await storefront(CREATE_CART_MUTATION, { lines: [] });
@@ -130,14 +129,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [persistCartId]);
 
   /* -----------------------
-     Fetch cart (SAFE)
+     Fetch cart
   ------------------------ */
   const fetchCart = useCallback(
     async (id: string) => {
       try {
         const data = await storefront(GET_CART_QUERY, { cartId: id });
 
-        // Shopify returns null if cart expired / checkout completed
         if (!data?.cart?.id) {
           throw new Error("Cart expired or not found");
         }
@@ -161,8 +159,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   ------------------------ */
   const createCart = useCallback(
     async (variantId: string, quantity: number) => {
+      const safeQuantity = Math.max(1, quantity);
+
       const data = await storefront(CREATE_CART_MUTATION, {
-        lines: [{ merchandiseId: variantId, quantity }],
+        lines: [{ merchandiseId: variantId, quantity: safeQuantity }],
       });
 
       const newCart: ShopifyCart | undefined = data?.cartCreate?.cart;
@@ -182,19 +182,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   ------------------------ */
   const addToCart = useCallback(
     async (variantId: string, quantity = 1) => {
+      const safeQuantity = Math.max(1, quantity);
+
       try {
         if (!cartId) {
-          await createCart(variantId, quantity);
+          await createCart(variantId, safeQuantity);
           return;
         }
 
         const data = await storefront(ADD_TO_CART_MUTATION, {
           cartId,
-          lines: [{ merchandiseId: variantId, quantity }],
+          lines: [{ merchandiseId: variantId, quantity: safeQuantity }],
         });
 
-        const updatedCart: ShopifyCart | undefined =
-          data?.cartLinesAdd?.cart;
+        const updatedCart: ShopifyCart | undefined = data?.cartLinesAdd?.cart;
 
         if (!updatedCart?.id) {
           throw new Error("cartLinesAdd failed (stale cart?)");
@@ -207,15 +208,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
         await createEmptyCart();
 
         const freshId =
-          typeof window !== "undefined"
-            ? localStorage.getItem("cartId")
-            : null;
+          typeof window !== "undefined" ? localStorage.getItem("cartId") : null;
 
         if (!freshId) throw error;
 
         const retry = await storefront(ADD_TO_CART_MUTATION, {
           cartId: freshId,
-          lines: [{ merchandiseId: variantId, quantity }],
+          lines: [{ merchandiseId: variantId, quantity: safeQuantity }],
         });
 
         if (retry?.cartLinesAdd?.cart?.id) {
@@ -232,7 +231,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   /* -----------------------
-     Remove from cart (SAFE)
+     Remove from cart
   ------------------------ */
   const removeFromCart = useCallback(
     async (lineId: string) => {
