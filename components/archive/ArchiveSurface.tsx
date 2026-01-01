@@ -1,14 +1,16 @@
 "use client";
 
-import { useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo, useState } from "react";
 import ArchiveCard from "./ArchiveCard";
 import { ArchiveProduct } from "./types";
+import { TbArrowsMove } from "react-icons/tb";
 
 interface Props {
   items: ArchiveProduct[];
 }
 
-const EDGE_PADDING = 140;
+/* ---------------- CONFIG ---------------- */
+const EDGE_PADDING = 20;
 const MIN_SCALE = 0.75;
 const MAX_SCALE = 1.35;
 const ZOOM_STEP = 0.18;
@@ -19,11 +21,21 @@ const SIZE_WIDTH = {
 };
 
 const SIZES: ("md" | "lg")[] = ["lg", "md", "md", "lg", "md"];
+/* --------------------------------------- */
+
+/* deterministic pseudo-random (pure) */
+function seededRandom(seed: number) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
 
 export default function ArchiveSurface({ items }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
 
+  const [mounted, setMounted] = useState(false);
+
+  /* unified transform state */
   const state = useRef({
     x: 0,
     y: 0,
@@ -34,7 +46,7 @@ export default function ArchiveSurface({ items }: Props) {
   const last = useRef({ x: 0, y: 0 });
 
   /* --------------------------------------------
-     Layout (immutable)
+     Layout (pure)
   --------------------------------------------- */
   const layout = useMemo(() => {
     return items.reduce(
@@ -46,8 +58,8 @@ export default function ArchiveSurface({ items }: Props) {
         const w = SIZE_WIDTH[size];
         const h = (w * 3) / 2;
 
-        const x = col * 500 + (row % 2 ? 180 : 0);
-        const y = row * 460 + (col % 2 ? 140 : 0);
+        const x = col * 420 + (row % 2 ? 100 : 0);
+        const y = row * 400 + (col % 2 ? 100 : 0);
 
         return {
           positions: [...acc.positions, { x, y, size }],
@@ -60,11 +72,7 @@ export default function ArchiveSurface({ items }: Props) {
         };
       },
       {
-        positions: [] as {
-          x: number;
-          y: number;
-          size: "md" | "lg";
-        }[],
+        positions: [] as { x: number; y: number; size: "md" | "lg" }[],
         bounds: {
           minX: Infinity,
           minY: Infinity,
@@ -86,7 +94,26 @@ export default function ArchiveSurface({ items }: Props) {
   );
 
   /* --------------------------------------------
-     Apply transform (CSS does smoothing)
+     Random intro delays (PURE, NO EFFECT)
+  --------------------------------------------- */
+  const introDelays = useMemo(() => {
+    const order = items.map((_, i) => i);
+
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(seededRandom(i) * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    const delays: number[] = [];
+    order.forEach((itemIndex, idx) => {
+      delays[itemIndex] = idx * 80;
+    });
+
+    return delays;
+  }, [items]);
+
+  /* --------------------------------------------
+     Apply transform
   --------------------------------------------- */
   function applyTransform(smooth = true) {
     if (!surfaceRef.current) return;
@@ -102,7 +129,7 @@ export default function ArchiveSurface({ items }: Props) {
   }
 
   /* --------------------------------------------
-     Center on mount
+     Center + intro trigger
   --------------------------------------------- */
   useEffect(() => {
     if (!viewportRef.current) return;
@@ -117,10 +144,13 @@ export default function ArchiveSurface({ items }: Props) {
     state.current.y = -bounds.minY - bh / 2 + vh / 2;
 
     applyTransform(false);
+
+    const t = setTimeout(() => setMounted(true), 80);
+    return () => clearTimeout(t);
   }, [bounds]);
 
   /* --------------------------------------------
-     Drag (no transition)
+     Drag
   --------------------------------------------- */
   function onMouseDown(e: React.MouseEvent) {
     isDragging.current = true;
@@ -153,7 +183,7 @@ export default function ArchiveSurface({ items }: Props) {
   }
 
   /* --------------------------------------------
-     Zoom (clean, no jitter)
+     Zoom
   --------------------------------------------- */
   function zoom(dir: "in" | "out") {
     if (!viewportRef.current) return;
@@ -167,7 +197,6 @@ export default function ArchiveSurface({ items }: Props) {
     if (prev === next) return;
 
     const { width, height } = viewportRef.current.getBoundingClientRect();
-
     const cx = width / 2;
     const cy = height / 2;
 
@@ -197,81 +226,42 @@ export default function ArchiveSurface({ items }: Props) {
       >
         {layout.positions.map((pos, i) => {
           const item = items[i];
+
           return (
             <div
               key={item.id}
-              className="absolute"
-              style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
+              className="absolute transition-[opacity,transform]"
+              style={{
+                transform: mounted
+                  ? `translate(${pos.x}px, ${pos.y}px)`
+                  : `translate(${pos.x}px, ${pos.y + 40}px) scale(0.96)`,
+                opacity: mounted ? 1 : 0,
+                transitionDuration: "950ms",
+                transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+                transitionDelay: `${introDelays[i] ?? 0}ms`,
+              }}
             >
-              <ArchiveCard
-                title={item.title}
-                handle={item.handle}
-                image={item.image}
-                size={pos.size}
-              />
+              <ArchiveCard {...item} size={pos.size} />
             </div>
           );
         })}
       </div>
 
-      {/* Controls  */}
+      {/* Controls */}
       <div className="fixed bottom-8 right-8 flex items-center gap-4 z-50">
-        {/* Drag hint */}
-        <div
-          className="
-      flex items-center gap-2
-      px-4 h-12
-      rounded-full
-      bg-[#F6F7FB]/60
-      backdrop-blur-xl
-      border border-black/10
-      text-sm
-      text-black/70
-      shadow-sm
-      select-none
-      pointer-events-none
-    "
-        >
-          <span className="text-base">⤧</span>
-          <span>Drag to explore</span>
-        </div>
+        <TbArrowsMove className="text-lg opacity-70" />
+        <span>Drag to explore</span>
 
-        {/* Zoom buttons */}
         <div className="flex gap-3">
           <button
             onClick={() => zoom("out")}
-            aria-label="Zoom out"
-            className="
-        w-12 h-12 rounded-full
-        flex items-center justify-center
-        bg-[#F6F7FB]/60
-        backdrop-blur-xl
-        border border-black/10
-        text-lg
-        shadow-sm
-        transition
-        hover:bg-[#F6F7FB]/80
-        active:scale-95
-      "
+            className="w-12 h-12 rounded-full bg-[#F6F7FB]/60 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-[#F6F7FB]/80 active:scale-95 transition"
           >
             −
           </button>
-
           <button
             onClick={() => zoom("in")}
-            aria-label="Zoom in"
-            className="
-        w-12 h-12 rounded-full
-        flex items-center justify-center
-        bg-[#F6F7FB]/60
-        backdrop-blur-xl
-        border border-black/10
-        text-lg
-        shadow-sm
-        transition
-        hover:bg-[#F6F7FB]/80
-        active:scale-95
-      "
+            className="w-12 h-12 rounded-full bg-[#F6F7FB]/60 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-[#F6F7FB]/80 active:scale-95 transition"
           >
             +
           </button>
