@@ -1,12 +1,21 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import ArchiveCard from "./ArchiveCard";
 import { ArchiveProduct } from "./types";
 
 interface Props {
   items: ArchiveProduct[];
 }
+
+const EDGE_PADDING = 80;
+
+const SIZE_WIDTH = {
+  sm: 140,
+  md: 200,
+  lg: 300,
+  xl: 400,
+};
 
 const SIZES: ("sm" | "md" | "lg")[] = [
   "lg",
@@ -18,10 +27,82 @@ const SIZES: ("sm" | "md" | "lg")[] = [
 ];
 
 export default function ArchiveSurface({ items }: Props) {
+  const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
+
   const isDragging = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
   const offset = useRef({ x: 0, y: 0 });
+
+  /* --------------------------------------------
+     Immutable layout + bounds calculation
+  --------------------------------------------- */
+  const layout = useMemo(() => {
+    const result = items.reduce(
+      (acc, item, i) => {
+        const col = i % 5;
+        const row = Math.floor(i / 5);
+
+        const x = col * 420 + (row % 2 ? 120 : 0);
+        const y = row * 380 + (col % 2 ? 80 : 0);
+
+        const size = SIZES[i % SIZES.length];
+        const width = SIZE_WIDTH[size];
+        const height = (width * 3) / 2;
+
+        return {
+          positions: [...acc.positions, { x, y, size }],
+          minX: Math.min(acc.minX, x),
+          minY: Math.min(acc.minY, y),
+          maxX: Math.max(acc.maxX, x + width),
+          maxY: Math.max(acc.maxY, y + height),
+        };
+      },
+      {
+        positions: [] as { x: number; y: number; size: "sm" | "md" | "lg" }[],
+        minX: Infinity,
+        minY: Infinity,
+        maxX: -Infinity,
+        maxY: -Infinity,
+      }
+    );
+
+    return {
+      positions: result.positions,
+      bounds: {
+        minX: result.minX - EDGE_PADDING,
+        minY: result.minY - EDGE_PADDING,
+        maxX: result.maxX + EDGE_PADDING,
+        maxY: result.maxY + EDGE_PADDING,
+      },
+    };
+  }, [items]);
+
+  /* --------------------------------------------
+     Center on mount
+  --------------------------------------------- */
+  useEffect(() => {
+    if (!viewportRef.current) return;
+
+    const vw = viewportRef.current.clientWidth;
+    const vh = viewportRef.current.clientHeight;
+
+    const contentWidth = layout.bounds.maxX - layout.bounds.minX;
+    const contentHeight = layout.bounds.maxY - layout.bounds.minY;
+
+    offset.current = {
+      x: -layout.bounds.minX - contentWidth / 2 + vw / 2,
+      y: -layout.bounds.minY - contentHeight / 2 + vh / 2,
+    };
+
+    if (surfaceRef.current) {
+      surfaceRef.current.style.transform = `translate(${offset.current.x}px, ${offset.current.y}px)`;
+    }
+  }, [layout]);
+
+  function clamp(v: number, min: number, max: number) {
+    return Math.min(Math.max(v, min), max);
+  }
 
   function onMouseDown(e: React.MouseEvent) {
     isDragging.current = true;
@@ -29,15 +110,25 @@ export default function ArchiveSurface({ items }: Props) {
   }
 
   function onMouseMove(e: React.MouseEvent) {
-    if (!isDragging.current || !surfaceRef.current) return;
+    if (!isDragging.current || !viewportRef.current) return;
 
     const dx = e.clientX - lastPos.current.x;
     const dy = e.clientY - lastPos.current.y;
 
-    offset.current.x += dx;
-    offset.current.y += dy;
+    const vw = viewportRef.current.clientWidth;
+    const vh = viewportRef.current.clientHeight;
 
-    surfaceRef.current.style.transform = `translate(${offset.current.x}px, ${offset.current.y}px)`;
+    const minX = vw - layout.bounds.maxX;
+    const maxX = -layout.bounds.minX;
+    const minY = vh - layout.bounds.maxY;
+    const maxY = -layout.bounds.minY;
+
+    offset.current.x = clamp(offset.current.x + dx, minX, maxX);
+    offset.current.y = clamp(offset.current.y + dy, minY, maxY);
+
+    if (surfaceRef.current) {
+      surfaceRef.current.style.transform = `translate(${offset.current.x}px, ${offset.current.y}px)`;
+    }
 
     lastPos.current = { x: e.clientX, y: e.clientY };
   }
@@ -47,36 +138,29 @@ export default function ArchiveSurface({ items }: Props) {
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      <div
-        ref={surfaceRef}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        className="absolute inset-0 w-[220vw] h-[220vh] cursor-grab"
-      >
-        {items.map((item, i) => {
-          const col = i % 5;
-          const row = Math.floor(i / 5);
-
-          // asymmetry like Palmer
-          const x = col * 420 + (row % 2 ? 120 : 0);
-          const y = row * 380 + (col % 2 ? 80 : 0);
-
-          const size = SIZES[i % SIZES.length];
+    <div
+      ref={viewportRef}
+      className="relative w-full h-full overflow-hidden cursor-grab"
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
+    >
+      <div ref={surfaceRef} className="absolute top-0 left-0">
+        {layout.positions.map((pos, i) => {
+          const item = items[i];
 
           return (
             <div
               key={item.id}
               className="absolute"
-              style={{ transform: `translate(${x}px, ${y}px)` }}
+              style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
             >
               <ArchiveCard
                 title={item.title}
                 handle={item.handle}
                 image={item.image}
-                size={size}
+                size={pos.size}
               />
             </div>
           );
