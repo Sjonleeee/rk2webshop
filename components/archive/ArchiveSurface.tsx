@@ -8,22 +8,31 @@ interface Props {
   items: ArchiveProduct[];
 }
 
+/* -----------------------------
+   DESIGN SYSTEM
+------------------------------ */
+
 const EDGE_PADDING = 80;
 
+/* MUST match ArchiveCard */
 const SIZE_WIDTH = {
-  sm: 140,
-  md: 200,
-  lg: 300,
-  xl: 400,
+  md: 220,
+  lg: 280,
 };
 
-const SIZES: ("sm" | "md" | "lg")[] = [
-  "lg",
-  "sm",
-  "md",
-  "sm",
-  "md",
-  "sm",
+type CardSize = "md" | "lg";
+
+/* Grid is based on MAX size */
+const GRID_X = 520; // >= lg width + margin
+const GRID_Y = 520; // >= lg height + margin
+
+/* Safe artistic offsets (never collide) */
+const OFFSETS = [
+  { dx: 0, dy: 0 },
+  { dx: 30, dy: 20 },
+  { dx: -30, dy: 40 },
+  { dx: 40, dy: -20 },
+  { dx: -40, dy: 30 },
 ];
 
 export default function ArchiveSurface({ items }: Props) {
@@ -35,18 +44,25 @@ export default function ArchiveSurface({ items }: Props) {
   const offset = useRef({ x: 0, y: 0 });
 
   /* --------------------------------------------
-     Immutable layout + bounds calculation
+     LAYOUT (NO OVERLAP GUARANTEED)
   --------------------------------------------- */
   const layout = useMemo(() => {
     const result = items.reduce(
       (acc, item, i) => {
-        const col = i % 5;
-        const row = Math.floor(i / 5);
+        const col = i % 4;
+        const row = Math.floor(i / 4);
 
-        const x = col * 420 + (row % 2 ? 120 : 0);
-        const y = row * 380 + (col % 2 ? 80 : 0);
+        const baseX = col * GRID_X;
+        const baseY = row * GRID_Y;
 
-        const size = SIZES[i % SIZES.length];
+        const offsetPattern = OFFSETS[i % OFFSETS.length];
+
+        const x = baseX + offsetPattern.dx;
+        const y = baseY + offsetPattern.dy;
+
+        /* Visual hierarchy: every 4th item is large */
+        const size: CardSize = i % 4 === 0 ? "lg" : "md";
+
         const width = SIZE_WIDTH[size];
         const height = (width * 3) / 2;
 
@@ -59,7 +75,11 @@ export default function ArchiveSurface({ items }: Props) {
         };
       },
       {
-        positions: [] as { x: number; y: number; size: "sm" | "md" | "lg" }[],
+        positions: [] as {
+          x: number;
+          y: number;
+          size: CardSize;
+        }[],
         minX: Infinity,
         minY: Infinity,
         maxX: -Infinity,
@@ -79,10 +99,10 @@ export default function ArchiveSurface({ items }: Props) {
   }, [items]);
 
   /* --------------------------------------------
-     Center on mount
+     CENTER CONTENT
   --------------------------------------------- */
   useEffect(() => {
-    if (!viewportRef.current) return;
+    if (!viewportRef.current || !surfaceRef.current) return;
 
     const vw = viewportRef.current.clientWidth;
     const vh = viewportRef.current.clientHeight;
@@ -95,9 +115,7 @@ export default function ArchiveSurface({ items }: Props) {
       y: -layout.bounds.minY - contentHeight / 2 + vh / 2,
     };
 
-    if (surfaceRef.current) {
-      surfaceRef.current.style.transform = `translate(${offset.current.x}px, ${offset.current.y}px)`;
-    }
+    surfaceRef.current.style.transform = `translate(${offset.current.x}px, ${offset.current.y}px)`;
   }, [layout]);
 
   function clamp(v: number, min: number, max: number) {
@@ -110,7 +128,8 @@ export default function ArchiveSurface({ items }: Props) {
   }
 
   function onMouseMove(e: React.MouseEvent) {
-    if (!isDragging.current || !viewportRef.current) return;
+    if (!isDragging.current || !viewportRef.current || !surfaceRef.current)
+      return;
 
     const dx = e.clientX - lastPos.current.x;
     const dy = e.clientY - lastPos.current.y;
@@ -126,9 +145,7 @@ export default function ArchiveSurface({ items }: Props) {
     offset.current.x = clamp(offset.current.x + dx, minX, maxX);
     offset.current.y = clamp(offset.current.y + dy, minY, maxY);
 
-    if (surfaceRef.current) {
-      surfaceRef.current.style.transform = `translate(${offset.current.x}px, ${offset.current.y}px)`;
-    }
+    surfaceRef.current.style.transform = `translate(${offset.current.x}px, ${offset.current.y}px)`;
 
     lastPos.current = { x: e.clientX, y: e.clientY };
   }

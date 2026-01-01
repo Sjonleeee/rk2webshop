@@ -6,14 +6,14 @@ interface ArchiveCardProps {
   title: string;
   handle: string;
   image?: ArchiveImage;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
-/* Palmer-style size ratios */
 const SIZE_MAP = {
   sm: "w-[180px]",
   md: "w-[240px]",
   lg: "w-[320px]",
+  xl: "w-[420px]",
 };
 
 export default function ArchiveCard({
@@ -23,21 +23,17 @@ export default function ArchiveCard({
   size = "md",
 }: ArchiveCardProps) {
   return (
-    <Link href={`/product/${handle}`} className="block">
-      <div className={`relative ${SIZE_MAP[size]}`}>
+    <Link href={`/product/${handle}`} className="block select-none">
+      <div className={`${SIZE_MAP[size]} relative`}>
         {image?.url && (
           <Image
             src={image.url}
             alt={image.altText ?? title}
-            width={800}
-            height={1200}
-            priority={size === "lg"}
-            className="
-              w-full
-              h-auto
-              object-contain
-              select-none
-            "
+            width={600}
+            height={900}
+            className="w-full h-auto object-contain"
+            priority={size === "xl"}
+            draggable={false}
           />
         )}
       </div>
