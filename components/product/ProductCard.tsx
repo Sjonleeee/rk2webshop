@@ -37,7 +37,6 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const image = product.images.edges[0]?.node;
-  // Shopify image optimalisatie: vraag kleinere afbeelding op
   const imageUrl = image
     ? `${image.url}${image.url.includes("?") ? "&" : "?"}width=600`
     : undefined;

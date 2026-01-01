@@ -3,19 +3,31 @@ export const GET_CART_QUERY = `
     cart(id: $cartId) {
       id
       checkoutUrl
+      cost {
+        subtotalAmount {
+          amount
+          currencyCode
+        }
+        totalAmount {
+          amount
+          currencyCode
+        }
+      }
       lines(first: 50) {
         edges {
           node {
             id
             quantity
+            cost {
+              totalAmount {
+                amount
+                currencyCode
+              }
+            }
             merchandise {
               ... on ProductVariant {
                 id
                 title
-                priceV2 {
-                  amount
-                  currencyCode
-                }
                 selectedOptions {
                   name
                   value
@@ -35,25 +47,38 @@ export const GET_CART_QUERY = `
   }
 `;
 
+
 export const CREATE_CART_MUTATION = `
   mutation CreateCart($lines: [CartLineInput!]) {
     cartCreate(input: { lines: $lines }) {
       cart {
         id
         checkoutUrl
+        cost {
+          subtotalAmount {
+            amount
+            currencyCode
+          }
+          totalAmount {
+            amount
+            currencyCode
+          }
+        }
         lines(first: 50) {
           edges {
             node {
               id
               quantity
+              cost {
+                totalAmount {
+                  amount
+                  currencyCode
+                }
+              }
               merchandise {
                 ... on ProductVariant {
                   id
                   title
-                  priceV2 {
-                    amount
-                    currencyCode
-                  }
                   selectedOptions {
                     name
                     value
@@ -80,19 +105,31 @@ export const ADD_TO_CART_MUTATION = `
       cart {
         id
         checkoutUrl
+        cost {
+          subtotalAmount {
+            amount
+            currencyCode
+          }
+          totalAmount {
+            amount
+            currencyCode
+          }
+        }
         lines(first: 50) {
           edges {
             node {
               id
               quantity
+              cost {
+                totalAmount {
+                  amount
+                  currencyCode
+                }
+              }
               merchandise {
                 ... on ProductVariant {
                   id
                   title
-                  priceV2 {
-                    amount
-                    currencyCode
-                  }
                   selectedOptions {
                     name
                     value
@@ -112,3 +149,4 @@ export const ADD_TO_CART_MUTATION = `
     }
   }
 `;
+

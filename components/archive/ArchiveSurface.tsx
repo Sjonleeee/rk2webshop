@@ -8,6 +8,15 @@ interface Props {
   items: ArchiveProduct[];
 }
 
+const SIZES: ("sm" | "md" | "lg")[] = [
+  "lg",
+  "sm",
+  "md",
+  "sm",
+  "md",
+  "sm",
+];
+
 export default function ArchiveSurface({ items }: Props) {
   const surfaceRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -45,24 +54,29 @@ export default function ArchiveSurface({ items }: Props) {
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
-        className="absolute inset-0 w-[200vw] h-[200vh] cursor-grab"
+        className="absolute inset-0 w-[220vw] h-[220vh] cursor-grab"
       >
         {items.map((item, i) => {
-          const x = (i % 6) * 360;
-          const y = Math.floor(i / 6) * 460;
+          const col = i % 5;
+          const row = Math.floor(i / 5);
+
+          // asymmetry like Palmer
+          const x = col * 420 + (row % 2 ? 120 : 0);
+          const y = row * 380 + (col % 2 ? 80 : 0);
+
+          const size = SIZES[i % SIZES.length];
 
           return (
             <div
               key={item.id}
               className="absolute"
-              style={{
-                transform: `translate(${x}px, ${y}px)`,
-              }}
+              style={{ transform: `translate(${x}px, ${y}px)` }}
             >
               <ArchiveCard
                 title={item.title}
                 handle={item.handle}
                 image={item.image}
+                size={size}
               />
             </div>
           );

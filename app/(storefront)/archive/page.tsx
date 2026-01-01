@@ -1,46 +1,64 @@
-// import ArchiveCanvas from "@/components/archive/ArchiveCanvas";
-// import ArchiveItem from "@/components/archive/ArchiveItem";
-// import { Key } from "react";
+import { storefront } from "@/lib/shopify/client";
+import { GET_PRODUCTS_QUERY } from "@/lib/shopify/queries/products";
+import ArchiveSurface from "@/components/archive/ArchiveSurface";
+import { ArchiveProduct } from "@/components/archive/types";
 
-// export default async function ArchivePage() {
-//   const products = await getAllProducts();
+/* -----------------------------
+   Shopify response typing
+------------------------------ */
 
-//   return (
-//     <main className="h-screen w-screen overflow-hidden bg-background px-12 py-20">
-//       <ArchiveCanvas>
-//         {products.map(
-//           (p: {
-//             id: Key | null | undefined;
-//             handle: string;
-//             title: string;
-//             images: { edges: { node: { url: string } }[] };
-//           }) => (
-//             <ArchiveItem
-//               key={p.id}
-//               handle={p.handle}
-//               title={p.title}
-//               image={p.images.edges[0]?.node.url}
-//             />
-//           )
-//         )}
-//       </ArchiveCanvas>
-//     </main>
-//   );
-// }
+interface ShopifyImageNode {
+  url: string;
+  altText?: string | null;
+}
 
-"use client";
+interface ShopifyImageEdge {
+  node: ShopifyImageNode;
+}
 
-import { motion } from "framer-motion";
+interface ShopifyProductNode {
+  id: string;
+  title: string;
+  handle: string;
+  productType?: string | null;
+  images: {
+    edges: ShopifyImageEdge[];
+  };
+}
 
-export default function ArchivePage() {
+interface ShopifyProductEdge {
+  node: ShopifyProductNode;
+}
+
+interface ShopifyProductsResponse {
+  products: {
+    edges: ShopifyProductEdge[];
+  };
+}
+
+export default async function ArchivePage() {
+  const data = (await storefront(
+    GET_PRODUCTS_QUERY,
+    {},
+    { revalidate: 120 }
+  )) as ShopifyProductsResponse;
+
+  const products: ArchiveProduct[] = data.products.edges.map(({ node }) => ({
+    id: node.id,
+    title: node.title,
+    handle: node.handle,
+    productType: node.productType,
+    image: node.images.edges[0]?.node
+      ? {
+          url: node.images.edges[0].node.url,
+          altText: node.images.edges[0].node.altText,
+        }
+      : undefined,
+  }));
+
   return (
-    <motion.main
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="min-h-screen flex items-center justify-center"
-    >
-      <h1 className="text-xl font-mono">Archive</h1>
-    </motion.main>
+    <section className="relative w-screen h-screen overflow-hidden">
+      <ArchiveSurface items={products} />
+    </section>
   );
 }

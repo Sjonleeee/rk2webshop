@@ -83,12 +83,9 @@ export default function Navbar() {
 
   const totalQty = lines.reduce((sum, edge) => sum + edge.node.quantity, 0);
 
-  const subtotal = lines
-    .reduce((sum, edge) => {
-      const price = parseFloat(edge.node.merchandise.priceV2?.amount ?? "0");
-      return sum + price * edge.node.quantity;
-    }, 0)
-    .toFixed(2);
+  const subtotal = cart?.cost?.subtotalAmount?.amount
+    ? Number(cart.cost.subtotalAmount.amount).toFixed(2)
+    : "0.00";
 
   return (
     <>

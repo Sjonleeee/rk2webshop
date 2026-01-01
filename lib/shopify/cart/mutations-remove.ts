@@ -4,19 +4,31 @@ export const REMOVE_FROM_CART_MUTATION = `
       cart {
         id
         checkoutUrl
+        cost {
+          subtotalAmount {
+            amount
+            currencyCode
+          }
+          totalAmount {
+            amount
+            currencyCode
+          }
+        }
         lines(first: 50) {
           edges {
             node {
               id
               quantity
+              cost {
+                totalAmount {
+                  amount
+                  currencyCode
+                }
+              }
               merchandise {
                 ... on ProductVariant {
                   id
                   title
-                  priceV2 {
-                    amount
-                    currencyCode
-                  }
                   selectedOptions {
                     name
                     value
