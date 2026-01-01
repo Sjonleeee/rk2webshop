@@ -8,152 +8,179 @@ interface Props {
   items: ArchiveProduct[];
 }
 
-/* -----------------------------
-   DESIGN SYSTEM
------------------------------- */
+const EDGE_PADDING = 140;
+const MIN_SCALE = 0.75;
+const MAX_SCALE = 1.35;
+const ZOOM_STEP = 0.18;
 
-const EDGE_PADDING = 80;
-
-/* MUST match ArchiveCard */
 const SIZE_WIDTH = {
-  md: 220,
-  lg: 280,
+  md: 240,
+  lg: 320,
 };
 
-type CardSize = "md" | "lg";
-
-/* Grid is based on MAX size */
-const GRID_X = 520; // >= lg width + margin
-const GRID_Y = 520; // >= lg height + margin
-
-/* Safe artistic offsets (never collide) */
-const OFFSETS = [
-  { dx: 0, dy: 0 },
-  { dx: 30, dy: 20 },
-  { dx: -30, dy: 40 },
-  { dx: 40, dy: -20 },
-  { dx: -40, dy: 30 },
-];
+const SIZES: ("md" | "lg")[] = ["lg", "md", "md", "lg", "md"];
 
 export default function ArchiveSurface({ items }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
 
+  const state = useRef({
+    x: 0,
+    y: 0,
+    scale: 1,
+  });
+
   const isDragging = useRef(false);
-  const lastPos = useRef({ x: 0, y: 0 });
-  const offset = useRef({ x: 0, y: 0 });
+  const last = useRef({ x: 0, y: 0 });
 
   /* --------------------------------------------
-     LAYOUT (NO OVERLAP GUARANTEED)
+     Layout (immutable)
   --------------------------------------------- */
   const layout = useMemo(() => {
-    const result = items.reduce(
-      (acc, item, i) => {
-        const col = i % 4;
-        const row = Math.floor(i / 4);
+    return items.reduce(
+      (acc, _, i) => {
+        const col = i % 5;
+        const row = Math.floor(i / 5);
 
-        const baseX = col * GRID_X;
-        const baseY = row * GRID_Y;
+        const size = SIZES[i % SIZES.length];
+        const w = SIZE_WIDTH[size];
+        const h = (w * 3) / 2;
 
-        const offsetPattern = OFFSETS[i % OFFSETS.length];
-
-        const x = baseX + offsetPattern.dx;
-        const y = baseY + offsetPattern.dy;
-
-        /* Visual hierarchy: every 4th item is large */
-        const size: CardSize = i % 4 === 0 ? "lg" : "md";
-
-        const width = SIZE_WIDTH[size];
-        const height = (width * 3) / 2;
+        const x = col * 500 + (row % 2 ? 180 : 0);
+        const y = row * 460 + (col % 2 ? 140 : 0);
 
         return {
           positions: [...acc.positions, { x, y, size }],
-          minX: Math.min(acc.minX, x),
-          minY: Math.min(acc.minY, y),
-          maxX: Math.max(acc.maxX, x + width),
-          maxY: Math.max(acc.maxY, y + height),
+          bounds: {
+            minX: Math.min(acc.bounds.minX, x),
+            minY: Math.min(acc.bounds.minY, y),
+            maxX: Math.max(acc.bounds.maxX, x + w),
+            maxY: Math.max(acc.bounds.maxY, y + h),
+          },
         };
       },
       {
         positions: [] as {
           x: number;
           y: number;
-          size: CardSize;
+          size: "md" | "lg";
         }[],
-        minX: Infinity,
-        minY: Infinity,
-        maxX: -Infinity,
-        maxY: -Infinity,
+        bounds: {
+          minX: Infinity,
+          minY: Infinity,
+          maxX: -Infinity,
+          maxY: -Infinity,
+        },
       }
     );
-
-    return {
-      positions: result.positions,
-      bounds: {
-        minX: result.minX - EDGE_PADDING,
-        minY: result.minY - EDGE_PADDING,
-        maxX: result.maxX + EDGE_PADDING,
-        maxY: result.maxY + EDGE_PADDING,
-      },
-    };
   }, [items]);
 
+  const bounds = useMemo(
+    () => ({
+      minX: layout.bounds.minX - EDGE_PADDING,
+      minY: layout.bounds.minY - EDGE_PADDING,
+      maxX: layout.bounds.maxX + EDGE_PADDING,
+      maxY: layout.bounds.maxY + EDGE_PADDING,
+    }),
+    [layout]
+  );
+
   /* --------------------------------------------
-     CENTER CONTENT
+     Apply transform (CSS does smoothing)
+  --------------------------------------------- */
+  function applyTransform(smooth = true) {
+    if (!surfaceRef.current) return;
+
+    surfaceRef.current.style.transition = smooth
+      ? "transform 450ms cubic-bezier(0.22, 1, 0.36, 1)"
+      : "none";
+
+    surfaceRef.current.style.transform = `
+      translate3d(${state.current.x}px, ${state.current.y}px, 0)
+      scale(${state.current.scale})
+    `;
+  }
+
+  /* --------------------------------------------
+     Center on mount
   --------------------------------------------- */
   useEffect(() => {
-    if (!viewportRef.current || !surfaceRef.current) return;
+    if (!viewportRef.current) return;
 
     const vw = viewportRef.current.clientWidth;
     const vh = viewportRef.current.clientHeight;
 
-    const contentWidth = layout.bounds.maxX - layout.bounds.minX;
-    const contentHeight = layout.bounds.maxY - layout.bounds.minY;
+    const bw = bounds.maxX - bounds.minX;
+    const bh = bounds.maxY - bounds.minY;
 
-    offset.current = {
-      x: -layout.bounds.minX - contentWidth / 2 + vw / 2,
-      y: -layout.bounds.minY - contentHeight / 2 + vh / 2,
-    };
+    state.current.x = -bounds.minX - bw / 2 + vw / 2;
+    state.current.y = -bounds.minY - bh / 2 + vh / 2;
 
-    surfaceRef.current.style.transform = `translate(${offset.current.x}px, ${offset.current.y}px)`;
-  }, [layout]);
+    applyTransform(false);
+  }, [bounds]);
 
-  function clamp(v: number, min: number, max: number) {
-    return Math.min(Math.max(v, min), max);
-  }
-
+  /* --------------------------------------------
+     Drag (no transition)
+  --------------------------------------------- */
   function onMouseDown(e: React.MouseEvent) {
     isDragging.current = true;
-    lastPos.current = { x: e.clientX, y: e.clientY };
+    last.current = { x: e.clientX, y: e.clientY };
   }
 
   function onMouseMove(e: React.MouseEvent) {
-    if (!isDragging.current || !viewportRef.current || !surfaceRef.current)
-      return;
+    if (!isDragging.current || !viewportRef.current) return;
 
-    const dx = e.clientX - lastPos.current.x;
-    const dy = e.clientY - lastPos.current.y;
+    const dx = e.clientX - last.current.x;
+    const dy = e.clientY - last.current.y;
 
     const vw = viewportRef.current.clientWidth;
     const vh = viewportRef.current.clientHeight;
 
-    const minX = vw - layout.bounds.maxX;
-    const maxX = -layout.bounds.minX;
-    const minY = vh - layout.bounds.maxY;
-    const maxY = -layout.bounds.minY;
+    const minX = vw - bounds.maxX * state.current.scale;
+    const maxX = -bounds.minX * state.current.scale;
+    const minY = vh - bounds.maxY * state.current.scale;
+    const maxY = -bounds.minY * state.current.scale;
 
-    offset.current.x = clamp(offset.current.x + dx, minX, maxX);
-    offset.current.y = clamp(offset.current.y + dy, minY, maxY);
+    state.current.x = Math.min(Math.max(state.current.x + dx, minX), maxX);
+    state.current.y = Math.min(Math.max(state.current.y + dy, minY), maxY);
 
-    surfaceRef.current.style.transform = `translate(${offset.current.x}px, ${offset.current.y}px)`;
-
-    lastPos.current = { x: e.clientX, y: e.clientY };
+    applyTransform(false);
+    last.current = { x: e.clientX, y: e.clientY };
   }
 
   function onMouseUp() {
     isDragging.current = false;
   }
 
+  /* --------------------------------------------
+     Zoom (clean, no jitter)
+  --------------------------------------------- */
+  function zoom(dir: "in" | "out") {
+    if (!viewportRef.current) return;
+
+    const prev = state.current.scale;
+    const next =
+      dir === "in"
+        ? Math.min(prev + ZOOM_STEP, MAX_SCALE)
+        : Math.max(prev - ZOOM_STEP, MIN_SCALE);
+
+    if (prev === next) return;
+
+    const { width, height } = viewportRef.current.getBoundingClientRect();
+
+    const cx = width / 2;
+    const cy = height / 2;
+
+    state.current.x = cx - ((cx - state.current.x) * next) / prev;
+    state.current.y = cy - ((cy - state.current.y) * next) / prev;
+    state.current.scale = next;
+
+    applyTransform(true);
+  }
+
+  /* --------------------------------------------
+     Render
+  --------------------------------------------- */
   return (
     <div
       ref={viewportRef}
@@ -163,10 +190,13 @@ export default function ArchiveSurface({ items }: Props) {
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
     >
-      <div ref={surfaceRef} className="absolute top-0 left-0">
+      <div
+        ref={surfaceRef}
+        className="absolute top-0 left-0"
+        style={{ transformOrigin: "0 0", willChange: "transform" }}
+      >
         {layout.positions.map((pos, i) => {
           const item = items[i];
-
           return (
             <div
               key={item.id}
@@ -182,6 +212,70 @@ export default function ArchiveSurface({ items }: Props) {
             </div>
           );
         })}
+      </div>
+
+      {/* Controls  */}
+      <div className="fixed bottom-8 right-8 flex items-center gap-4 z-50">
+        {/* Drag hint */}
+        <div
+          className="
+      flex items-center gap-2
+      px-4 h-12
+      rounded-full
+      bg-[#F6F7FB]/60
+      backdrop-blur-xl
+      border border-black/10
+      text-sm
+      text-black/70
+      shadow-sm
+      select-none
+      pointer-events-none
+    "
+        >
+          <span className="text-base">⤧</span>
+          <span>Drag to explore</span>
+        </div>
+
+        {/* Zoom buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => zoom("out")}
+            aria-label="Zoom out"
+            className="
+        w-12 h-12 rounded-full
+        flex items-center justify-center
+        bg-[#F6F7FB]/60
+        backdrop-blur-xl
+        border border-black/10
+        text-lg
+        shadow-sm
+        transition
+        hover:bg-[#F6F7FB]/80
+        active:scale-95
+      "
+          >
+            −
+          </button>
+
+          <button
+            onClick={() => zoom("in")}
+            aria-label="Zoom in"
+            className="
+        w-12 h-12 rounded-full
+        flex items-center justify-center
+        bg-[#F6F7FB]/60
+        backdrop-blur-xl
+        border border-black/10
+        text-lg
+        shadow-sm
+        transition
+        hover:bg-[#F6F7FB]/80
+        active:scale-95
+      "
+          >
+            +
+          </button>
+        </div>
       </div>
     </div>
   );
