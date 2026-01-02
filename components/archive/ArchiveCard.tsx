@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { ArchiveImage } from "./types";
 
 interface ArchiveCardProps {
@@ -10,6 +10,8 @@ interface ArchiveCardProps {
   handle: string;
   image?: ArchiveImage;
   size?: "sm" | "md" | "lg";
+  isManualHover?: boolean;
+  globalMousePos?: { x: number; y: number };
 }
 
 const SIZE_MAP = {
@@ -23,42 +25,71 @@ export default function ArchiveCard({
   handle,
   image,
   size = "md",
+  isManualHover = false,
+  globalMousePos,
 }: ArchiveCardProps) {
   const labelRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLAnchorElement>(null);
 
-  function onMouseMove(e: React.MouseEvent) {
+  /* --------------------------------------------
+     Helpers
+  --------------------------------------------- */
+  function updateLabelPosition(x: number, y: number) {
     if (!labelRef.current) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // label follows cursor — centered UNDER mouse
     labelRef.current.style.transform = `
-      translate3d(${x}px, ${y + 14}px, 0)
-      translateX(-50%)
+      translate3d(${x}px, ${y + 14}px, 0) translateX(-50%)
     `;
   }
 
-  function onMouseEnter() {
+  function showLabel() {
     if (!labelRef.current) return;
     labelRef.current.style.opacity = "1";
   }
 
-  function onMouseLeave() {
+  function hideLabel() {
     if (!labelRef.current) return;
     labelRef.current.style.opacity = "0";
   }
 
+  /* --------------------------------------------
+     Manual hover (from ArchiveSurface)
+  --------------------------------------------- */
+  useEffect(() => {
+    if (isManualHover && globalMousePos && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = globalMousePos.x - rect.left;
+      const y = globalMousePos.y - rect.top;
+
+      updateLabelPosition(x, y);
+      showLabel();
+    } else {
+      hideLabel();
+    }
+  }, [isManualHover, globalMousePos]);
+
+  /* --------------------------------------------
+     Native hover (only when not manual)
+  --------------------------------------------- */
+  function onMouseMove(e: React.MouseEvent) {
+    if (isManualHover || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    updateLabelPosition(e.clientX - rect.left, e.clientY - rect.top);
+  }
+
   return (
     <Link
+      ref={containerRef}
       href={`/product/${handle}`}
       className="group relative block"
       onMouseMove={onMouseMove}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseEnter={() => {
+        if (!isManualHover) showLabel();
+      }}
+      onMouseLeave={() => {
+        if (!isManualHover) hideLabel();
+      }}
     >
-      {/* Product image */}
+      {/* Image */}
       <div className={`${SIZE_MAP[size]} relative`}>
         {image?.url && (
           <Image
@@ -66,7 +97,7 @@ export default function ArchiveCard({
             alt={image.altText ?? title}
             width={600}
             height={900}
-            className="w-full h-auto object-contain"
+            className="w-full h-auto object-contain pointer-events-none"
             priority={size === "lg"}
           />
         )}
@@ -77,24 +108,22 @@ export default function ArchiveCard({
         ref={labelRef}
         className="
           pointer-events-none
-          fixed top-0 left-0
-          z-50
+          absolute top-0 left-0
+          z-100
           opacity-0
-          transition-opacity duration-200 ease-out
+          transition-opacity duration-150 ease-out
         "
-        style={{
-          transform: "translate3d(0,0,0) translateX(-50%)",
-        }}
+        style={{ transform: "translate3d(0,0,0) translateX(-50%)" }}
       >
         <div
           className="
-            px-4 py-2
-            text-[hsl(var(--rk2-color-accent))]
-            text-[9px] font-medium
-            shadow-lg
-            backdrop-blur-md
-            whitespace-nowrap
-          "
+          px-4 py-2
+          text-[9px] font-medium
+          text-[hsl(var(--rk2-color-accent))]
+          shadow-lg
+          backdrop-blur-md
+          whitespace-nowrap
+        "
         >
           ／ {title}
         </div>

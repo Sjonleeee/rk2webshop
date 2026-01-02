@@ -7,6 +7,8 @@ import { TbArrowsMove } from "react-icons/tb";
 
 /* ---------------- CONFIG ---------------- */
 const EDGE_PADDING = 20;
+
+/* zoom */
 const MIN_SCALE = 0.75;
 const MAX_SCALE = 1.35;
 const ZOOM_STEP = 0.18;
@@ -15,7 +17,7 @@ const ZOOM_STEP = 0.18;
 const FRICTION = 0.92;
 const MIN_VELOCITY = 0.12;
 
-/* card sizes */
+/* sizes */
 const SIZE_WIDTH = {
   md: 240,
   lg: 320,
@@ -37,20 +39,27 @@ export default function ArchiveSurface({ items }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
 
-  /* fade-in control */
+  /* fade-in */
   const [visibleMap, setVisibleMap] = useState<Record<number, number>>({});
   const revealedRef = useRef<Set<number>>(new Set());
 
+  /* responsive */
   const [isMobile, setIsMobile] = useState(false);
 
-  /* unified transform */
+  /* hover */
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const mouseRef = useRef({ x: 0, y: 0 });
+  const hoverRaf = useRef<number | null>(null);
+
+  /* transform */
   const state = useRef({ x: 0, y: 0, scale: 1 });
 
   /* drag + inertia */
   const isDragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
   const velocity = useRef({ x: 0, y: 0 });
-  const rafId = useRef<number | null>(null);
+  const inertiaRaf = useRef<number | null>(null);
 
   /* --------------------------------------------
      Detect mobile
@@ -60,24 +69,6 @@ export default function ArchiveSurface({ items }: Props) {
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
-  }, []);
-
-  /* --------------------------------------------
-     🚫 BLOCK BROWSER BACK/FORWARD (CRITICAL FIX)
-  --------------------------------------------- */
-  useEffect(() => {
-    const el = viewportRef.current;
-    if (!el) return;
-
-    const preventNav = (e: WheelEvent) => {
-      e.preventDefault();
-    };
-
-    el.addEventListener("wheel", preventNav, { passive: false });
-
-    return () => {
-      el.removeEventListener("wheel", preventNav);
-    };
   }, []);
 
   /* --------------------------------------------
@@ -92,7 +83,6 @@ export default function ArchiveSurface({ items }: Props) {
       (acc, _, i) => {
         const col = i % 5;
         const row = Math.floor(i / 5);
-
         const size = SIZES[i % SIZES.length];
         const w = SIZE_WIDTH[size];
         const h = (w * 3) / 2;
@@ -139,7 +129,7 @@ export default function ArchiveSurface({ items }: Props) {
   /* --------------------------------------------
      Apply transform
   --------------------------------------------- */
-  function applyTransform(smooth = false) {
+  const applyTransform = useCallback((smooth = false) => {
     if (!surfaceRef.current) return;
 
     surfaceRef.current.style.transition = smooth
@@ -150,10 +140,10 @@ export default function ArchiveSurface({ items }: Props) {
       translate3d(${state.current.x}px, ${state.current.y}px, 0)
       scale(${state.current.scale})
     `;
-  }
+  }, []);
 
   /* --------------------------------------------
-     Visibility (CALLED BY INTERACTION ONLY)
+     Visibility
   --------------------------------------------- */
   const updateVisibility = useCallback(() => {
     if (!viewportRef.current) return;
@@ -187,6 +177,127 @@ export default function ArchiveSurface({ items }: Props) {
   }, [layout.positions]);
 
   /* --------------------------------------------
+     Hover detection (RAF throttled)
+  --------------------------------------------- */
+  const checkHover = useCallback(() => {
+    if (isMobile || !viewportRef.current) return;
+
+    const rect = viewportRef.current.getBoundingClientRect();
+    const worldX =
+      (mouseRef.current.x - rect.left - state.current.x) / state.current.scale;
+    const worldY =
+      (mouseRef.current.y - rect.top - state.current.y) / state.current.scale;
+
+    let found: number | null = null;
+
+    for (let i = layout.positions.length - 1; i >= 0; i--) {
+      const p = layout.positions[i];
+      if (
+        worldX >= p.x &&
+        worldX <= p.x + p.w &&
+        worldY >= p.y &&
+        worldY <= p.y + p.h
+      ) {
+        found = i;
+        break;
+      }
+    }
+
+    setHoveredIndex(found);
+    setMousePos({ ...mouseRef.current });
+  }, [layout.positions, isMobile]);
+
+  const requestHoverCheck = useCallback(() => {
+    if (hoverRaf.current) return;
+    hoverRaf.current = requestAnimationFrame(() => {
+      checkHover();
+      hoverRaf.current = null;
+    });
+  }, [checkHover]);
+
+  /* --------------------------------------------
+     Move helper
+  --------------------------------------------- */
+  const move = useCallback(
+    (dx: number, dy: number) => {
+      if (!viewportRef.current) return;
+
+      velocity.current.x = dx;
+      velocity.current.y = dy;
+
+      const vw = viewportRef.current.clientWidth;
+      const vh = viewportRef.current.clientHeight;
+
+      const minX = vw - bounds.maxX * state.current.scale;
+      const maxX = -bounds.minX * state.current.scale;
+      const minY = vh - bounds.maxY * state.current.scale;
+      const maxY = -bounds.minY * state.current.scale;
+
+      state.current.x = Math.min(Math.max(state.current.x + dx, minX), maxX);
+      state.current.y = Math.min(Math.max(state.current.y + dy, minY), maxY);
+
+      applyTransform(false);
+      updateVisibility();
+      requestHoverCheck();
+    },
+    [bounds, applyTransform, updateVisibility, requestHoverCheck]
+  );
+
+  /* --------------------------------------------
+     ZOOM (RESTORED)
+  --------------------------------------------- */
+  function zoom(dir: "in" | "out") {
+    if (!viewportRef.current) return;
+
+    const prev = state.current.scale;
+    const next =
+      dir === "in"
+        ? Math.min(prev + ZOOM_STEP, MAX_SCALE)
+        : Math.max(prev - ZOOM_STEP, MIN_SCALE);
+
+    if (prev === next) return;
+
+    const { width, height } = viewportRef.current.getBoundingClientRect();
+    const cx = width / 2;
+    const cy = height / 2;
+
+    state.current.x = cx - ((cx - state.current.x) * next) / prev;
+    state.current.y = cy - ((cy - state.current.y) * next) / prev;
+    state.current.scale = next;
+
+    applyTransform(true);
+    updateVisibility();
+    requestHoverCheck();
+  }
+
+  /* --------------------------------------------
+     Wheel + mouse tracking
+  --------------------------------------------- */
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const factor = e.deltaMode === 1 ? 40 : 1;
+      move(-e.deltaX * 0.8 * factor, -e.deltaY * 0.8 * factor);
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      mouseRef.current = { x: e.clientX, y: e.clientY };
+      requestHoverCheck();
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("mousemove", onMouseMove);
+
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      window.removeEventListener("mousemove", onMouseMove);
+    };
+  }, [move, requestHoverCheck]);
+
+  /* --------------------------------------------
      Center on mount
   --------------------------------------------- */
   useEffect(() => {
@@ -194,7 +305,6 @@ export default function ArchiveSurface({ items }: Props) {
 
     const vw = viewportRef.current.clientWidth;
     const vh = viewportRef.current.clientHeight;
-
     const bw = bounds.maxX - bounds.minX;
     const bh = bounds.maxY - bounds.minY;
 
@@ -203,35 +313,13 @@ export default function ArchiveSurface({ items }: Props) {
 
     applyTransform(false);
     requestAnimationFrame(updateVisibility);
-  }, [bounds, updateVisibility]);
-
-  /* --------------------------------------------
-     Move helper
-  --------------------------------------------- */
-  function move(dx: number, dy: number) {
-    velocity.current.x = dx;
-    velocity.current.y = dy;
-
-    const vw = viewportRef.current!.clientWidth;
-    const vh = viewportRef.current!.clientHeight;
-
-    const minX = vw - bounds.maxX * state.current.scale;
-    const maxX = -bounds.minX * state.current.scale;
-    const minY = vh - bounds.maxY * state.current.scale;
-    const maxY = -bounds.minY * state.current.scale;
-
-    state.current.x = Math.min(Math.max(state.current.x + dx, minX), maxX);
-    state.current.y = Math.min(Math.max(state.current.y + dy, minY), maxY);
-
-    applyTransform(false);
-    updateVisibility();
-  }
+  }, [bounds, applyTransform, updateVisibility]);
 
   /* --------------------------------------------
      Inertia
   --------------------------------------------- */
   function startInertia() {
-    if (rafId.current) cancelAnimationFrame(rafId.current);
+    if (inertiaRaf.current) cancelAnimationFrame(inertiaRaf.current);
 
     const step = () => {
       velocity.current.x *= FRICTION;
@@ -244,80 +332,10 @@ export default function ArchiveSurface({ items }: Props) {
         return;
 
       move(velocity.current.x, velocity.current.y);
-      rafId.current = requestAnimationFrame(step);
+      inertiaRaf.current = requestAnimationFrame(step);
     };
 
-    rafId.current = requestAnimationFrame(step);
-  }
-
-  /* --------------------------------------------
-     Mouse / touch
-  --------------------------------------------- */
-  function onMouseDown(e: React.MouseEvent) {
-    isDragging.current = true;
-    last.current = { x: e.clientX, y: e.clientY };
-  }
-
-  function onMouseMove(e: React.MouseEvent) {
-    if (!isDragging.current) return;
-    move(e.clientX - last.current.x, e.clientY - last.current.y);
-    last.current = { x: e.clientX, y: e.clientY };
-  }
-
-  function onMouseUp() {
-    isDragging.current = false;
-    startInertia();
-  }
-
-  function onTouchStart(e: React.TouchEvent) {
-    const t = e.touches[0];
-    isDragging.current = true;
-    last.current = { x: t.clientX, y: t.clientY };
-  }
-
-  function onTouchMove(e: React.TouchEvent) {
-    if (!isDragging.current) return;
-    const t = e.touches[0];
-    move(t.clientX - last.current.x, t.clientY - last.current.y);
-    last.current = { x: t.clientX, y: t.clientY };
-  }
-
-  function onTouchEnd() {
-    isDragging.current = false;
-    startInertia();
-  }
-
-  /* --------------------------------------------
-     Wheel / trackpad
-  --------------------------------------------- */
-  function onWheel(e: React.WheelEvent) {
-    e.preventDefault();
-    const factor = e.deltaMode === 1 ? 40 : 1;
-    move(-e.deltaX * 0.8 * factor, -e.deltaY * 0.8 * factor);
-  }
-
-  /* --------------------------------------------
-     Zoom
-  --------------------------------------------- */
-  function zoom(dir: "in" | "out") {
-    const prev = state.current.scale;
-    const next =
-      dir === "in"
-        ? Math.min(prev + ZOOM_STEP, MAX_SCALE)
-        : Math.max(prev - ZOOM_STEP, MIN_SCALE);
-
-    if (prev === next) return;
-
-    const { width, height } = viewportRef.current!.getBoundingClientRect();
-    const cx = width / 2;
-    const cy = height / 2;
-
-    state.current.x = cx - ((cx - state.current.x) * next) / prev;
-    state.current.y = cy - ((cy - state.current.y) * next) / prev;
-    state.current.scale = next;
-
-    applyTransform(true);
-    updateVisibility();
+    inertiaRaf.current = requestAnimationFrame(step);
   }
 
   /* --------------------------------------------
@@ -326,15 +344,45 @@ export default function ArchiveSurface({ items }: Props) {
   return (
     <div
       ref={viewportRef}
-      className="relative w-full h-full overflow-hidden cursor-grab touch-none"
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseUp}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-      onWheel={onWheel}
+      className="relative w-full h-full overflow-hidden cursor-grab active:cursor-grabbing touch-none"
+      onMouseDown={(e) => {
+        isDragging.current = true;
+        last.current = { x: e.clientX, y: e.clientY };
+      }}
+      onMouseMove={(e) => {
+        if (!isDragging.current) return;
+        move(e.clientX - last.current.x, e.clientY - last.current.y);
+        last.current = { x: e.clientX, y: e.clientY };
+      }}
+      onMouseUp={() => {
+        isDragging.current = false;
+        startInertia();
+      }}
+      onMouseLeave={() => {
+        isDragging.current = false;
+      }}
+      onTouchStart={(e) => {
+        isDragging.current = true;
+        last.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+      }}
+      onTouchMove={(e) => {
+        if (!isDragging.current) return;
+        move(
+          e.touches[0].clientX - last.current.x,
+          e.touches[0].clientY - last.current.y
+        );
+        last.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+      }}
+      onTouchEnd={() => {
+        isDragging.current = false;
+        startInertia();
+      }}
     >
       <div
         ref={surfaceRef}
@@ -356,9 +404,15 @@ export default function ArchiveSurface({ items }: Props) {
                 transitionDelay: `${delay ?? 0}ms`,
                 transitionDuration: "900ms",
                 transitionTimingFunction: "cubic-bezier(0.22,1,0.36,1)",
+                zIndex: hoveredIndex === i ? 50 : 1,
               }}
             >
-              <ArchiveCard {...items[i]} size={pos.size} />
+              <ArchiveCard
+                {...items[i]}
+                size={pos.size}
+                isManualHover={hoveredIndex === i}
+                globalMousePos={mousePos}
+              />
             </div>
           );
         })}
@@ -367,20 +421,20 @@ export default function ArchiveSurface({ items }: Props) {
       {/* Controls */}
       <div className="fixed bottom-8 right-8 flex items-center gap-4 z-50 text-black/70">
         <div className="flex items-center gap-2 px-4 h-12 select-none pointer-events-none">
-          <TbArrowsMove className="text-lg" />
-          <span className="text-xs">Drag to explore</span>
+          <TbArrowsMove className="text-xs" />
+          <span className="text-[9px]">Drag to explore</span>
         </div>
 
         <div className="flex gap-3">
           <button
             onClick={() => zoom("out")}
-            className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-white/80 active:scale-95 transition"
+            className="w-9 h-9 rounded-full bg-white/80 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-white active:scale-95 transition"
           >
             −
           </button>
           <button
             onClick={() => zoom("in")}
-            className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-white/80 active:scale-95 transition"
+            className="w-9 h-9 rounded-full bg-white/80 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-white active:scale-95 transition"
           >
             +
           </button>
