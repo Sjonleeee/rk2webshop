@@ -79,7 +79,7 @@ export default function ArchiveCard({
   return (
     <Link
       ref={containerRef}
-      href={`/product/${handle}`}
+      href={`/product/${handle}?from=archive`}
       className="group relative block"
       onMouseMove={onMouseMove}
       onMouseEnter={() => {

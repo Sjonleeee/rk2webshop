@@ -8,6 +8,9 @@ import { TbArrowsMove } from "react-icons/tb";
 /* ---------------- CONFIG ---------------- */
 const EDGE_PADDING = 20;
 
+/* hover */
+const HOVER_SCALE = 1.06;
+
 /* zoom */
 const MIN_SCALE = 0.75;
 const MAX_SCALE = 1.35;
@@ -17,7 +20,7 @@ const ZOOM_STEP = 0.18;
 const FRICTION = 0.92;
 const MIN_VELOCITY = 0.12;
 
-/* sizes */
+/* card sizes */
 const SIZE_WIDTH = {
   md: 240,
   lg: 320,
@@ -95,7 +98,6 @@ export default function ArchiveSurface({ items }: Props) {
         acc.bounds.minY = Math.min(acc.bounds.minY, y);
         acc.bounds.maxX = Math.max(acc.bounds.maxX, x + w);
         acc.bounds.maxY = Math.max(acc.bounds.maxY, y + h);
-
         return acc;
       },
       {
@@ -147,7 +149,6 @@ export default function ArchiveSurface({ items }: Props) {
   --------------------------------------------- */
   const updateVisibility = useCallback(() => {
     if (!viewportRef.current) return;
-
     const rect = viewportRef.current.getBoundingClientRect();
     const next: Record<number, number> = {};
 
@@ -184,9 +185,11 @@ export default function ArchiveSurface({ items }: Props) {
 
     const rect = viewportRef.current.getBoundingClientRect();
     const worldX =
-      (mouseRef.current.x - rect.left - state.current.x) / state.current.scale;
+      (mouseRef.current.x - rect.left - state.current.x) /
+      state.current.scale;
     const worldY =
-      (mouseRef.current.y - rect.top - state.current.y) / state.current.scale;
+      (mouseRef.current.y - rect.top - state.current.y) /
+      state.current.scale;
 
     let found: number | null = null;
 
@@ -244,7 +247,7 @@ export default function ArchiveSurface({ items }: Props) {
   );
 
   /* --------------------------------------------
-     ZOOM (RESTORED)
+     Zoom
   --------------------------------------------- */
   function zoom(dir: "in" | "out") {
     if (!viewportRef.current) return;
@@ -391,6 +394,8 @@ export default function ArchiveSurface({ items }: Props) {
       >
         {layout.positions.map((pos, i) => {
           const delay = visibleMap[i];
+          const isHovered = hoveredIndex === i && !isMobile;
+
           return (
             <div
               key={items[i].id}
@@ -398,19 +403,19 @@ export default function ArchiveSurface({ items }: Props) {
               style={{
                 transform:
                   delay !== undefined
-                    ? `translate(${pos.x}px, ${pos.y}px)`
+                    ? `translate(${pos.x}px, ${pos.y}px) scale(${isHovered ? HOVER_SCALE : 1})`
                     : `translate(${pos.x}px, ${pos.y + 40}px) scale(0.96)`,
                 opacity: delay !== undefined ? 1 : 0,
                 transitionDelay: `${delay ?? 0}ms`,
-                transitionDuration: "900ms",
+                transitionDuration: isHovered ? "240ms" : "900ms",
                 transitionTimingFunction: "cubic-bezier(0.22,1,0.36,1)",
-                zIndex: hoveredIndex === i ? 50 : 1,
+                zIndex: isHovered ? 50 : 1,
               }}
             >
               <ArchiveCard
                 {...items[i]}
                 size={pos.size}
-                isManualHover={hoveredIndex === i}
+                isManualHover={isHovered}
                 globalMousePos={mousePos}
               />
             </div>

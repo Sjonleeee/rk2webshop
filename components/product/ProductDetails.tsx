@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useCart } from "@/components/providers/CartContext";
 import AddToCartButton from "@/components/cart/AddToCartButton";
+import { useSearchParams } from "next/navigation";
 
 /* ------------------------------------------------------------------
  * Types
@@ -47,6 +48,16 @@ interface ProductDetailsProps {
  * -----------------------------------------------------------------*/
 export default function ProductDetails({ product }: ProductDetailsProps) {
   const { cart } = useCart();
+
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+
+  const breadcrumb = useMemo(() => {
+    if (from === "archive") {
+      return { label: "Archive", href: "/archive" };
+    }
+    return { label: "Products", href: "/shop" };
+  }, [from]);
 
   const variants = product.variants.edges.map((e) => e.node);
   const images = product.images.edges.map((e) => e.node);
@@ -122,7 +133,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     <section className="relative w-full">
       {/* MOBILE NAV */}
       <nav className="md:hidden px-6 pt-4 text-[10px] tracking-wide text-neutral-400">
-        <Link href="/shop">Products</Link>
+        <Link href={breadcrumb.href}>{breadcrumb.label}</Link>
         <span className="mx-1">/</span>
         <span className="text-[hsl(var(--rk2-color-accent))]">
           {product.title}
@@ -133,7 +144,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         {/* LEFT COLUMN */}
         <aside className="hidden md:block col-span-3 relative pr-10">
           <nav className="fixed top-30 left-10 z-40 text-[10px] tracking-wide text-neutral-400">
-            <Link href="/shop">Products</Link>
+            <Link href={breadcrumb.href}>{breadcrumb.label}</Link>
             <span className="mx-1">/</span>
             <span className="text-[hsl(var(--rk2-color-accent))]">
               {product.title}
