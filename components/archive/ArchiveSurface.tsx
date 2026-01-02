@@ -24,7 +24,6 @@ const SIZE_WIDTH = {
 const SIZES: ("md" | "lg")[] = ["lg", "md", "md", "lg", "md"];
 /* --------------------------------------- */
 
-/* deterministic random (PURE) */
 function seededRandom(seed: number) {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
@@ -38,14 +37,13 @@ export default function ArchiveSurface({ items }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
 
-  /* visible items (fade-in control) */
+  /* fade-in control */
   const [visibleMap, setVisibleMap] = useState<Record<number, number>>({});
   const revealedRef = useRef<Set<number>>(new Set());
 
-  /* mobile detect */
   const [isMobile, setIsMobile] = useState(false);
 
-  /* unified transform state */
+  /* unified transform */
   const state = useRef({ x: 0, y: 0, scale: 1 });
 
   /* drag + inertia */
@@ -62,6 +60,24 @@ export default function ArchiveSurface({ items }: Props) {
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
+  }, []);
+
+  /* --------------------------------------------
+     🚫 BLOCK BROWSER BACK/FORWARD (CRITICAL FIX)
+  --------------------------------------------- */
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const preventNav = (e: WheelEvent) => {
+      e.preventDefault();
+    };
+
+    el.addEventListener("wheel", preventNav, { passive: false });
+
+    return () => {
+      el.removeEventListener("wheel", preventNav);
+    };
   }, []);
 
   /* --------------------------------------------
@@ -84,7 +100,7 @@ export default function ArchiveSurface({ items }: Props) {
         const x = col * COL_GAP + (row % 2 ? OFFSET : 0);
         const y = row * ROW_GAP + (col % 2 ? OFFSET : 0);
 
-        acc.positions.push({ x, y, size, w, h });
+        acc.positions.push({ x, y, w, h, size });
         acc.bounds.minX = Math.min(acc.bounds.minX, x);
         acc.bounds.minY = Math.min(acc.bounds.minY, y);
         acc.bounds.maxX = Math.max(acc.bounds.maxX, x + w);
@@ -137,7 +153,7 @@ export default function ArchiveSurface({ items }: Props) {
   }
 
   /* --------------------------------------------
-     Visibility check (CALLED BY INTERACTION)
+     Visibility (CALLED BY INTERACTION ONLY)
   --------------------------------------------- */
   const updateVisibility = useCallback(() => {
     if (!viewportRef.current) return;
@@ -186,22 +202,18 @@ export default function ArchiveSurface({ items }: Props) {
     state.current.y = -bounds.minY - bh / 2 + vh / 2;
 
     applyTransform(false);
-
-    const raf = requestAnimationFrame(updateVisibility);
-    return () => cancelAnimationFrame(raf);
+    requestAnimationFrame(updateVisibility);
   }, [bounds, updateVisibility]);
 
   /* --------------------------------------------
      Move helper
   --------------------------------------------- */
   function move(dx: number, dy: number) {
-    if (!viewportRef.current) return;
-
     velocity.current.x = dx;
     velocity.current.y = dy;
 
-    const vw = viewportRef.current.clientWidth;
-    const vh = viewportRef.current.clientHeight;
+    const vw = viewportRef.current!.clientWidth;
+    const vh = viewportRef.current!.clientHeight;
 
     const minX = vw - bounds.maxX * state.current.scale;
     const maxX = -bounds.minX * state.current.scale;
@@ -239,7 +251,7 @@ export default function ArchiveSurface({ items }: Props) {
   }
 
   /* --------------------------------------------
-     Mouse + touch
+     Mouse / touch
   --------------------------------------------- */
   function onMouseDown(e: React.MouseEvent) {
     isDragging.current = true;
@@ -276,11 +288,18 @@ export default function ArchiveSurface({ items }: Props) {
   }
 
   /* --------------------------------------------
+     Wheel / trackpad
+  --------------------------------------------- */
+  function onWheel(e: React.WheelEvent) {
+    e.preventDefault();
+    const factor = e.deltaMode === 1 ? 40 : 1;
+    move(-e.deltaX * 0.8 * factor, -e.deltaY * 0.8 * factor);
+  }
+
+  /* --------------------------------------------
      Zoom
   --------------------------------------------- */
   function zoom(dir: "in" | "out") {
-    if (!viewportRef.current) return;
-
     const prev = state.current.scale;
     const next =
       dir === "in"
@@ -289,7 +308,7 @@ export default function ArchiveSurface({ items }: Props) {
 
     if (prev === next) return;
 
-    const { width, height } = viewportRef.current.getBoundingClientRect();
+    const { width, height } = viewportRef.current!.getBoundingClientRect();
     const cx = width / 2;
     const cy = height / 2;
 
@@ -315,6 +334,7 @@ export default function ArchiveSurface({ items }: Props) {
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      onWheel={onWheel}
     >
       <div
         ref={surfaceRef}
@@ -322,12 +342,10 @@ export default function ArchiveSurface({ items }: Props) {
         style={{ transformOrigin: "0 0", willChange: "transform" }}
       >
         {layout.positions.map((pos, i) => {
-          const item = items[i];
           const delay = visibleMap[i];
-
           return (
             <div
-              key={item.id}
+              key={items[i].id}
               className="absolute transition-[opacity,transform]"
               style={{
                 transform:
@@ -340,7 +358,7 @@ export default function ArchiveSurface({ items }: Props) {
                 transitionTimingFunction: "cubic-bezier(0.22,1,0.36,1)",
               }}
             >
-              <ArchiveCard {...item} size={pos.size} />
+              <ArchiveCard {...items[i]} size={pos.size} />
             </div>
           );
         })}
@@ -348,21 +366,21 @@ export default function ArchiveSurface({ items }: Props) {
 
       {/* Controls */}
       <div className="fixed bottom-8 right-8 flex items-center gap-4 z-50 text-black/70">
-        <div className="flex items-center gap-2 px-4 h-12 rounded-full bg-white/60 backdrop-blur-xl border border-black/10 shadow-sm select-none pointer-events-none">
+        <div className="flex items-center gap-2 px-4 h-12 select-none pointer-events-none">
           <TbArrowsMove className="text-lg" />
-          <span className="text-sm">Drag to explore</span>
+          <span className="text-xs">Drag to explore</span>
         </div>
 
         <div className="flex gap-3">
           <button
             onClick={() => zoom("out")}
-            className="w-12 h-12 rounded-full bg-white/60 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-white/80 active:scale-95 transition"
+            className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-white/80 active:scale-95 transition"
           >
             −
           </button>
           <button
             onClick={() => zoom("in")}
-            className="w-12 h-12 rounded-full bg-white/60 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-white/80 active:scale-95 transition"
+            className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-xl border border-black/10 text-lg shadow-sm hover:bg-white/80 active:scale-95 transition"
           >
             +
           </button>
