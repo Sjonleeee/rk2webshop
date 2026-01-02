@@ -15,6 +15,10 @@ const MIN_SCALE = 0.75;
 const MAX_SCALE = 1.35;
 const ZOOM_STEP = 0.18;
 
+/* inertia tuning (Palmer-like) */
+const FRICTION = 0.92;
+const MIN_VELOCITY = 0.1;
+
 const SIZE_WIDTH = {
   md: 240,
   lg: 320,
@@ -23,7 +27,7 @@ const SIZE_WIDTH = {
 const SIZES: ("md" | "lg")[] = ["lg", "md", "md", "lg", "md"];
 /* --------------------------------------- */
 
-/* deterministic pseudo-random (pure) */
+/* deterministic pseudo-random (PURE) */
 function seededRandom(seed: number) {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
@@ -34,6 +38,7 @@ export default function ArchiveSurface({ items }: Props) {
   const surfaceRef = useRef<HTMLDivElement>(null);
 
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   /* unified transform state */
   const state = useRef({
@@ -42,13 +47,30 @@ export default function ArchiveSurface({ items }: Props) {
     scale: 1,
   });
 
+  /* drag + inertia */
   const isDragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
+  const velocity = useRef({ x: 0, y: 0 });
+  const rafId = useRef<number | null>(null);
 
   /* --------------------------------------------
-     Layout (pure)
+     Detect mobile (safe)
+  --------------------------------------------- */
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth < 768);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  /* --------------------------------------------
+     Layout (PURE, responsive spacing)
   --------------------------------------------- */
   const layout = useMemo(() => {
+    const COL_GAP = isMobile ? 300 : 420;
+    const ROW_GAP = isMobile ? 400 : 400;
+    const OFFSET = isMobile ? 100 : 100;
+
     return items.reduce(
       (acc, _, i) => {
         const col = i % 5;
@@ -58,8 +80,8 @@ export default function ArchiveSurface({ items }: Props) {
         const w = SIZE_WIDTH[size];
         const h = (w * 3) / 2;
 
-        const x = col * 420 + (row % 2 ? 100 : 0);
-        const y = row * 400 + (col % 2 ? 100 : 0);
+        const x = col * COL_GAP + (row % 2 ? OFFSET : 0);
+        const y = row * ROW_GAP + (col % 2 ? OFFSET : 0);
 
         return {
           positions: [...acc.positions, { x, y, size }],
@@ -81,7 +103,7 @@ export default function ArchiveSurface({ items }: Props) {
         },
       }
     );
-  }, [items]);
+  }, [items, isMobile]);
 
   const bounds = useMemo(
     () => ({
@@ -94,21 +116,18 @@ export default function ArchiveSurface({ items }: Props) {
   );
 
   /* --------------------------------------------
-     Random intro delays (PURE, NO EFFECT)
+     Random intro delays (PURE)
   --------------------------------------------- */
   const introDelays = useMemo(() => {
     const order = items.map((_, i) => i);
-
     for (let i = order.length - 1; i > 0; i--) {
       const j = Math.floor(seededRandom(i) * (i + 1));
       [order[i], order[j]] = [order[j], order[i]];
     }
-
     const delays: number[] = [];
     order.forEach((itemIndex, idx) => {
       delays[itemIndex] = idx * 80;
     });
-
     return delays;
   }, [items]);
 
@@ -129,7 +148,7 @@ export default function ArchiveSurface({ items }: Props) {
   }
 
   /* --------------------------------------------
-     Center + intro trigger
+     Center + intro
   --------------------------------------------- */
   useEffect(() => {
     if (!viewportRef.current) return;
@@ -150,18 +169,13 @@ export default function ArchiveSurface({ items }: Props) {
   }, [bounds]);
 
   /* --------------------------------------------
-     Drag
+     Move helper (shared)
   --------------------------------------------- */
-  function onMouseDown(e: React.MouseEvent) {
-    isDragging.current = true;
-    last.current = { x: e.clientX, y: e.clientY };
-  }
+  function move(dx: number, dy: number) {
+    if (!viewportRef.current) return;
 
-  function onMouseMove(e: React.MouseEvent) {
-    if (!isDragging.current || !viewportRef.current) return;
-
-    const dx = e.clientX - last.current.x;
-    const dy = e.clientY - last.current.y;
+    velocity.current.x = dx;
+    velocity.current.y = dy;
 
     const vw = viewportRef.current.clientWidth;
     const vh = viewportRef.current.clientHeight;
@@ -175,11 +189,72 @@ export default function ArchiveSurface({ items }: Props) {
     state.current.y = Math.min(Math.max(state.current.y + dy, minY), maxY);
 
     applyTransform(false);
+  }
+
+  /* --------------------------------------------
+     Inertia (Palmer feel)
+  --------------------------------------------- */
+  function startInertia() {
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+
+    const step = () => {
+      velocity.current.x *= FRICTION;
+      velocity.current.y *= FRICTION;
+
+      if (
+        Math.abs(velocity.current.x) < MIN_VELOCITY &&
+        Math.abs(velocity.current.y) < MIN_VELOCITY
+      ) {
+        velocity.current.x = 0;
+        velocity.current.y = 0;
+        return;
+      }
+
+      move(velocity.current.x, velocity.current.y);
+      rafId.current = requestAnimationFrame(step);
+    };
+
+    rafId.current = requestAnimationFrame(step);
+  }
+
+  /* --------------------------------------------
+     Mouse drag
+  --------------------------------------------- */
+  function onMouseDown(e: React.MouseEvent) {
+    isDragging.current = true;
+    last.current = { x: e.clientX, y: e.clientY };
+  }
+
+  function onMouseMove(e: React.MouseEvent) {
+    if (!isDragging.current) return;
+    move(e.clientX - last.current.x, e.clientY - last.current.y);
     last.current = { x: e.clientX, y: e.clientY };
   }
 
   function onMouseUp() {
     isDragging.current = false;
+    startInertia();
+  }
+
+  /* --------------------------------------------
+     Touch drag (mobile)
+  --------------------------------------------- */
+  function onTouchStart(e: React.TouchEvent) {
+    isDragging.current = true;
+    const t = e.touches[0];
+    last.current = { x: t.clientX, y: t.clientY };
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (!isDragging.current) return;
+    const t = e.touches[0];
+    move(t.clientX - last.current.x, t.clientY - last.current.y);
+    last.current = { x: t.clientX, y: t.clientY };
+  }
+
+  function onTouchEnd() {
+    isDragging.current = false;
+    startInertia();
   }
 
   /* --------------------------------------------
@@ -213,11 +288,14 @@ export default function ArchiveSurface({ items }: Props) {
   return (
     <div
       ref={viewportRef}
-      className="relative w-full h-full overflow-hidden cursor-grab"
+      className="relative w-full h-full overflow-hidden cursor-grab touch-none"
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
     >
       <div
         ref={surfaceRef}
@@ -226,7 +304,6 @@ export default function ArchiveSurface({ items }: Props) {
       >
         {layout.positions.map((pos, i) => {
           const item = items[i];
-
           return (
             <div
               key={item.id}
@@ -249,8 +326,10 @@ export default function ArchiveSurface({ items }: Props) {
 
       {/* Controls */}
       <div className="fixed bottom-8 right-8 flex items-center gap-4 z-50">
-        <TbArrowsMove className="text-lg opacity-70" />
-        <span>Drag to explore</span>
+        <div className="flex items-center gap-2 px-4 h-12 rounded-full bg-[#F6F7FB]/60 backdrop-blur-xl border border-black/10 text-sm shadow-sm select-none pointer-events-none mix-blend-difference">
+          <TbArrowsMove className="text-lg" />
+          <span>Drag to explore</span>
+        </div>
 
         <div className="flex gap-3">
           <button
